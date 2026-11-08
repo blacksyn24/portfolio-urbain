@@ -57,6 +57,11 @@ export function Journey({ timeline, certifications }: { timeline: TimelineItem[]
               <p className="mt-1 text-sm text-ultra-200/70">
                 {c.issuer} · {c.year}
               </p>
+              {c.credential_url && (
+                <a href={c.credential_url} target="_blank" rel="noopener" className="mt-3 inline-block text-sm text-ultra-300 underline hover:text-white">
+                  Vérifier le badge
+                </a>
+              )}
             </Reveal>
           ))}
         </div>
