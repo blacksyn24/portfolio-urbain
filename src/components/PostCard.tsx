@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText } from "lucide-react";
 import Link from "next/link";
 import type { Post } from "@/lib/types";
 
@@ -8,15 +8,20 @@ export const readingTime = (text: string) => Math.max(1, Math.round(text.split(/
 export function PostCard({ post }: { post: Post }) {
   return (
     <article className="glass group relative flex h-full flex-col overflow-hidden rounded-[2.25rem] p-2 transition-transform duration-500 [transition-timing-function:var(--spring)] hover:-translate-y-1">
-      {post.cover_url && (
-        <div className="relative h-44 overflow-hidden rounded-[1.85rem]">
+      {(post.cover_url || post.pdf_preview_url) && (
+        <div className={`relative h-44 overflow-hidden rounded-[1.85rem] ${post.cover_url ? "" : "bg-white"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.cover_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <img src={post.cover_url || post.pdf_preview_url} alt="" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+          {post.pdf_url && (
+            <span className="chip absolute left-3 top-3 !bg-ink-950/85 backdrop-blur-md">
+              <FileText size={13} /> PDF
+            </span>
+          )}
         </div>
       )}
       <div className="flex flex-1 flex-col p-5">
         <p className="flex items-center gap-1.5 font-mono text-xs text-ultra-300">
-          <CalendarDays size={13} /> {fmtDate(post.published_at)} · {readingTime(post.content)} min
+          <CalendarDays size={13} /> {fmtDate(post.published_at)} · {post.content.trim() ? `${readingTime(post.content)} min` : "PDF"}
         </p>
         <h3 className="mt-2 text-lg font-semibold leading-snug">
           <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0 after:content-['']">

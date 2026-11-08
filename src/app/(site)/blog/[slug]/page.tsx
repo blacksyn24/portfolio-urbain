@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/Markdown";
+import { PdfAttachment } from "@/components/PdfAttachment";
 import { fmtDate, PostCard, readingTime } from "@/components/PostCard";
 import { Reveal } from "@/components/Reveal";
 import { getPost, getPosts } from "@/lib/data";
@@ -15,7 +16,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getPost((await params).slug);
-  return p ? { title: p.title, description: p.excerpt, openGraph: p.cover_url ? { images: [p.cover_url] } : undefined } : {};
+  return p ? { title: p.title, description: p.excerpt, openGraph: p.cover_url || p.pdf_preview_url ? { images: [p.cover_url || p.pdf_preview_url!] } : undefined } : {};
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -32,7 +33,7 @@ export default async function ArticlePage({ params }: Props) {
       <Reveal>
         <p className="flex flex-wrap items-center gap-3 font-mono text-xs text-ultra-300">
           <span className="flex items-center gap-1.5"><CalendarDays size={13} /> {fmtDate(post.published_at)}</span>
-          <span className="flex items-center gap-1.5"><Clock size={13} /> {readingTime(post.content)} min de lecture</span>
+          {post.content.trim() && <span className="flex items-center gap-1.5"><Clock size={13} /> {readingTime(post.content)} min de lecture</span>}
         </p>
         <h1 className="text-gradient mt-3 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{post.title}</h1>
         {post.excerpt && <p className="mt-4 text-lg leading-relaxed text-ultra-200/85">{post.excerpt}</p>}
@@ -48,9 +49,12 @@ export default async function ArticlePage({ params }: Props) {
           <img src={post.cover_url} alt="" className="max-h-[440px] w-full rounded-[2rem] object-cover" />
         </Reveal>
       )}
-      <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
-        <Markdown>{post.content}</Markdown>
-      </div>
+      {post.content.trim() && (
+        <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
+          <Markdown>{post.content}</Markdown>
+        </div>
+      )}
+      {post.pdf_url && <PdfAttachment url={post.pdf_url} name={post.pdf_name ?? ""} size={post.pdf_size ?? 0} preview={post.pdf_preview_url ?? ""} />}
       {others.length > 0 && (
         <section className="pt-20">
           <h2 className="mb-6 text-2xl font-semibold">À lire aussi</h2>

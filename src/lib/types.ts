@@ -80,6 +80,10 @@ export type Post = {
   excerpt: string;
   content: string;
   cover_url: string;
+  pdf_url?: string;
+  pdf_name?: string;
+  pdf_size?: number;
+  pdf_preview_url?: string;
   tags: string[];
   published: boolean;
   published_at: string;

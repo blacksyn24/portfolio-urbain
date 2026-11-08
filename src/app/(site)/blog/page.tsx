@@ -20,9 +20,9 @@ export default async function BlogPage() {
           items={posts.slice(0, 7).map((p) => ({
             key: p.slug,
             title: p.title,
-            meta: `${fmtDate(p.published_at)} · ${readingTime(p.content)} min`,
+            meta: `${fmtDate(p.published_at)} · ${p.pdf_url ? "PDF" : `${readingTime(p.content)} min`}`,
             description: p.excerpt,
-            image: p.cover_url || undefined,
+            image: p.cover_url || p.pdf_preview_url || undefined,
             cover: <PostCover tag={p.tags[0]} />,
             thumbText: "📝",
             href: `/blog/${p.slug}`,

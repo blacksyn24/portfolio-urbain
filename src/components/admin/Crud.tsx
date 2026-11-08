@@ -14,6 +14,7 @@ export type Field =
   | { name: string; label: string; type: "bool" }
   | { name: string; label: string; type: "image"; folder: string }
   | { name: string; label: string; type: "gallery"; folder: string; coverField?: string }
+  | { name: string; label: string; type: "pdf"; folder: string; nameField: string; sizeField: string; previewField: string }
   | { name: string; label: string; type: "markdown"; help?: string }
   | { name: string; label: string; type: "datetime" }
   | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number };
@@ -278,6 +279,72 @@ export function FieldInput({
         {f.help && <span className="mt-1 block text-xs text-ultra-200/50">{f.help}</span>}
       </label>
     );
+  if (f.type === "pdf") {
+    const url = String(value ?? "");
+    const preview = String(record?.[f.previewField] ?? "");
+    const name = String(record?.[f.nameField] ?? "");
+    return (
+      <div>
+        {label}
+        <div className="flex flex-wrap items-center gap-3">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="Aperçu de la 1re page" className="h-24 w-[4.5rem] rounded-lg bg-white object-cover object-top shadow" />
+          ) : (
+            <div className="grid h-24 w-[4.5rem] place-items-center rounded-lg bg-white/5 text-xs text-ultra-200/40">PDF</div>
+          )}
+          <div className="flex flex-col gap-2">
+            <label className="btn btn-glass cursor-pointer !py-2 text-sm">
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />} {url ? "Remplacer le PDF" : "Ajouter un PDF"}
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  if (file.type !== "application/pdf") return notify({ title: "Ce fichier n'est pas un PDF", tone: "error" });
+                  if (file.size > 45 * 1024 * 1024) return notify({ title: "PDF trop lourd", subtitle: "45 Mo maximum", tone: "error" });
+                  setBusy(true);
+                  try {
+                    const pdfUrl = await upload(file, f.folder);
+                    let previewUrl = "";
+                    try {
+                      const { pdfFirstPage } = await import("@/lib/pdfPreview");
+                      const blob = await pdfFirstPage(file);
+                      previewUrl = await upload(new File([blob], file.name.replace(/\.pdf$/i, "") + "-apercu.webp", { type: "image/webp" }), `${f.folder}/apercus`);
+                    } catch (err) {
+                      console.error(err);
+                      notify({ title: "PDF envoyé, aperçu impossible", subtitle: "Le PDF reste téléchargeable", tone: "info" });
+                    }
+                    onChange(pdfUrl);
+                    patch?.({ [f.nameField]: file.name, [f.sizeField]: file.size, [f.previewField]: previewUrl });
+                    if (previewUrl) notify({ title: "PDF ajouté", subtitle: "Aperçu de la 1re page généré", tone: "success" });
+                  } catch (err) {
+                    notify({ title: "Envoi impossible", subtitle: err instanceof Error ? err.message : "", tone: "error" });
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+            </label>
+            {url && (
+              <span className="flex items-center gap-3 text-sm">
+                <a href={url} target="_blank" className="max-w-[14rem] truncate text-ultra-300 underline">
+                  {name || "Voir le PDF"}
+                </a>
+                <button type="button" onClick={() => { onChange(""); patch?.({ [f.nameField]: "", [f.sizeField]: 0, [f.previewField]: "" }); }} className="text-red-300">
+                  Retirer
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+        <span className="mt-1 block text-xs text-ultra-200/50">L&apos;aperçu de la 1re page sert de couverture si l&apos;article n&apos;a pas d&apos;image.</span>
+      </div>
+    );
+  }
   if (f.type === "gallery") {
     const list = (value as string[]) ?? [];
     const cover = f.coverField ? String(record?.[f.coverField] ?? "") : "";
