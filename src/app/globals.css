@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/* ---------- Palette « Ultramarine » ---------- */
+@theme {
+  --color-ink-950: #071039;
+  --color-ink-900: #0f2270;
+  --color-ultra-700: #1a3bb0;
+  --color-ultra-500: #2e5de6;
+  --color-ultra-300: #6e92f2;
+  --color-ultra-200: #afc5f8;
+  --color-ultra-50: #e6edfd;
+  --color-violet-glow: #7b5cf5;
+  --color-ok: #4ade80;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+}
+
+body {
+  background: #040a26;
+  color: var(--color-ultra-50);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgb(110 146 242 / 0.45);
+}
+
+/* ---------- Fond liquide animé ---------- */
+.liquid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #0f2270 0%, transparent 60%),
+    linear-gradient(180deg, #071039 0%, #040a26 100%);
+}
+.liquid-bg .blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.75;
+  will-change: transform;
+}
+.liquid-bg .b1 {
+  width: 62vmax; height: 40vmax; left: -18vmax; top: -8vmax;
+  background: radial-gradient(closest-side, #2e5de6, #1a3bb0 55%, transparent);
+  animation: drift1 26s ease-in-out infinite alternate;
+}
+.liquid-bg .b2 {
+  width: 48vmax; height: 48vmax; right: -14vmax; top: 18vh;
+  background: radial-gradient(closest-side, #6e92f2, #7b5cf5 50%, transparent);
+  opacity: 0.45;
+  animation: drift2 32s ease-in-out infinite alternate;
+}
+.liquid-bg .b3 {
+  width: 56vmax; height: 34vmax; left: 10vmax; bottom: -16vmax;
+  background: radial-gradient(closest-side, #1a3bb0, #0f2270 60%, transparent);
+  animation: drift3 38s ease-in-out infinite alternate;
+}
+.liquid-bg .grain {
+  position: absolute; inset: 0;
+  opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@keyframes drift1 { to { transform: translate3d(14vmax, 10vmax, 0) rotate(18deg) scale(1.1); } }
+@keyframes drift2 { to { transform: translate3d(-16vmax, 6vmax, 0) rotate(-24deg) scale(0.9); } }
+@keyframes drift3 { to { transform: translate3d(12vmax, -12vmax, 0) rotate(12deg) scale(1.15); } }
+
+/* ---------- Liquid Glass (couche components : les utilitaires Tailwind restent prioritaires) ---------- */
+@layer components {
+.glass {
+  --mx: 30%;
+  --my: 0%;
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(140deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.03) 45%, rgb(175 197 248 / 0.06));
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    inset 0 -1px 0 rgb(255 255 255 / 0.05),
+    inset 0 0 24px rgb(175 197 248 / 0.05),
+    0 18px 50px -12px rgb(2 6 30 / 0.65);
+}
+/* liseré dégradé (reflet de bord) */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    150deg,
+    rgb(255 255 255 / 0.6),
+    rgb(255 255 255 / 0.08) 30%,
+    rgb(255 255 255 / 0.02) 60%,
+    rgb(175 197 248 / 0.45)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+/* reflet spéculaire qui suit le curseur */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mx) var(--my),
+    rgb(230 237 253 / 0.13),
+    transparent 45%
+  );
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.4s;
+}
+.glass > * { position: relative; z-index: 2; }
+
+.glass-strong {
+  background: linear-gradient(140deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05) 50%, rgb(110 146 242 / 0.1));
+}
+.glass-dark {
+  background: linear-gradient(140deg, rgb(7 16 57 / 0.72), rgb(4 10 38 / 0.6));
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+}
+/* réfraction (Chromium uniquement, activée en JS) */
+html.can-refract .glass-refract {
+  backdrop-filter: url(#liquid-refraction) blur(14px) saturate(180%);
+}
+
+/* Pastille / tag en verre */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--color-ultra-50);
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+/* Boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.8rem 1.4rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.35s var(--spring), box-shadow 0.3s, background 0.3s;
+}
+.btn:hover { transform: translateY(-2px) scale(1.02); }
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(180deg, #4a74ee, #2e5de6 55%, #1a3bb0);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -2px 6px rgb(7 16 57 / 0.35),
+    0 10px 30px -8px rgb(46 93 230 / 0.8);
+}
+.btn-glass {
+  color: var(--color-ultra-50);
+  background: rgb(255 255 255 / 0.07);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ultra-300);
+}
+
+.text-gradient {
+  background: linear-gradient(180deg, #fff 20%, #afc5f8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+input, textarea { font: inherit; }
+.field {
+  width: 100%;
+  border-radius: 1.1rem;
+  padding: 0.85rem 1.1rem;
+  color: var(--color-ultra-50);
+  background: rgb(4 10 38 / 0.45);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.09);
+  outline: none;
+  transition: box-shadow 0.25s;
+}
+.field::placeholder { color: rgb(175 197 248 / 0.5); }
+.field:focus { box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px #6e92f2, 0 0 0 4px rgb(110 146 242 / 0.18); }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-bg .blob { animation: none; }
+  html { scroll-behavior: auto; }
+}
