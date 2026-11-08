@@ -1,10 +1,11 @@
 "use client";
 
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
-import { Loader2, LockKeyhole } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { browserClient } from "@/lib/supabase";
 import { useIsland } from "../IslandProvider";
+import { AdminLogin, REMEMBER_KEY } from "./AdminLogin";
 
 type Ctx = {
   db: SupabaseClient;
@@ -34,6 +35,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const check = useCallback(
     async (s: Session | null) => {
+      // « Se souvenir de moi » décoché : la session ne survit pas à la fermeture du navigateur
+      try {
+        if (s && localStorage.getItem(REMEMBER_KEY) === "0" && !sessionStorage.getItem(REMEMBER_KEY)) {
+          await db.auth.signOut();
+          s = null;
+        }
+      } catch {}
       setSession(s);
       if (!s) return setStatus("out");
       const { data } = await db.rpc("is_admin");
@@ -94,47 +102,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         <Loader2 className="animate-spin text-ultra-300" />
       </div>
     );
-  if (status !== "ok" || !session) return <Login denied={status === "denied"} db={db} />;
+  if (status !== "ok" || !session) return <AdminLogin denied={status === "denied"} db={db} />;
 
   return <AdminContext.Provider value={{ db, session, publish, upload, unread, refreshUnread }}>{children}</AdminContext.Provider>;
-}
-
-function Login({ denied, db }: { denied: boolean; db: SupabaseClient }) {
-  const [error, setError] = useState(denied ? "Ce compte n'a pas accès au dashboard." : "");
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    setBusy(true);
-    setError("");
-    const { error } = await db.auth.signInWithPassword({ email: String(f.get("email")), password: String(f.get("password")) });
-    setBusy(false);
-    if (error) setError(error.message === "Invalid login credentials" ? "Email ou mot de passe incorrect." : error.message);
-  }
-
-  return (
-    <div className="grid min-h-dvh place-items-center px-4">
-      <form onSubmit={submit} className="glass glass-strong w-full max-w-sm space-y-4 rounded-[2rem] p-8">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ultra-500/70">
-          <LockKeyhole size={22} />
-        </span>
-        <div>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-ultra-200/70">Connexion réservée à l&apos;administrateur.</p>
-        </div>
-        <input name="email" type="email" required autoComplete="email" placeholder="Email" className="field" />
-        <input name="password" type="password" required autoComplete="current-password" placeholder="Mot de passe" className="field" />
-        {error && <p className="text-sm text-red-300">{error}</p>}
-        {denied && (
-          <button type="button" onClick={() => db.auth.signOut()} className="text-sm text-ultra-300 underline">
-            Se déconnecter
-          </button>
-        )}
-        <button disabled={busy} className="btn btn-primary w-full disabled:opacity-60">
-          {busy && <Loader2 size={16} className="animate-spin" />} Se connecter
-        </button>
-      </form>
-    </div>
-  );
 }
