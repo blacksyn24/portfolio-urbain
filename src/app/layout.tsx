@@ -6,7 +6,8 @@ import { IslandProvider } from "@/components/IslandProvider";
 import { LiquidBackground } from "@/components/LiquidBackground";
 
 export const metadata: Metadata = {
-  title: "Urbain Sedami LANDJIDE — Réseaux & Cybersécurité",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio-urbain.vercel.app"),
+  title: { default: "Urbain Sedami LANDJIDE — Réseaux & Cybersécurité", template: "%s — Urbain Sedami LANDJIDE" },
   description:
     "Portfolio d'Urbain Sedami LANDJIDE, étudiant en Réseaux & Cybersécurité (Licence RMS, Pigier Bénin × Cisco Networking Academy). Labs GNS3, CCNA, multi-VLAN, FortiGate, MikroTik.",
 };

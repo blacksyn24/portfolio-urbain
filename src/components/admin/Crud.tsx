@@ -12,7 +12,10 @@ export type Field =
   | { name: string; label: string; type: "tags"; help?: string }
   | { name: string; label: string; type: "select"; options: { value: string; label: string }[] }
   | { name: string; label: string; type: "bool" }
-  | { name: string; label: string; type: "image"; folder: string };
+  | { name: string; label: string; type: "image"; folder: string }
+  | { name: string; label: string; type: "markdown"; help?: string }
+  | { name: string; label: string; type: "datetime" }
+  | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number };
 
 type Row = Record<string, unknown> & { id: string; position: number; published: boolean };
 
@@ -173,7 +176,14 @@ export function Crud({ table, title, intro, itemLabel, fields, primary, secondar
               </div>
               <div className="space-y-4 overflow-y-auto p-5">
                 {fields.map((f) => (
-                  <FieldInput key={f.name} field={f} value={editing[f.name]} onChange={(v) => setEditing((e) => ({ ...e, [f.name]: v }))} upload={upload} />
+                  <FieldInput
+                    key={f.name}
+                    field={f}
+                    value={editing[f.name]}
+                    onChange={(v) => setEditing((e) => ({ ...e, [f.name]: v }))}
+                    patch={(o) => setEditing((e) => ({ ...e, ...o }))}
+                    upload={upload}
+                  />
                 ))}
               </div>
               <div className="flex justify-end gap-2 border-t border-white/8 p-4">
@@ -211,11 +221,13 @@ export function FieldInput({
   field: f,
   value,
   onChange,
+  patch,
   upload,
 }: {
   field: Field;
   value: unknown;
   onChange: (v: unknown) => void;
+  patch?: (o: Record<string, unknown>) => void;
   upload: (file: File, folder: string) => Promise<string>;
 }) {
   const { notify } = useIsland();
@@ -261,6 +273,64 @@ export function FieldInput({
         />
         {f.help && <span className="mt-1 block text-xs text-ultra-200/50">{f.help}</span>}
       </label>
+    );
+  if (f.type === "datetime") {
+    const v = value ? new Date(String(value)) : new Date();
+    const local = new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    return (
+      <label className="block">
+        {label}
+        <input type="datetime-local" value={local} onChange={(e) => onChange(new Date(e.target.value).toISOString())} className="field" />
+      </label>
+    );
+  }
+  if (f.type === "markdown")
+    return (
+      <label className="block">
+        {label}
+        <textarea value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} rows={16} className="field resize-y font-mono text-sm" placeholder={"## Objectif\n\nTexte de l'article…\n\n```\nRouter(config)# interface g0/0\n```"} />
+        <span className="mt-1 block text-xs text-ultra-200/50">
+          {f.help ?? "Mise en forme : ## Titre · **gras** · - liste · [lien](https://…) · ![image](https://…) · ``` code ```"}
+        </span>
+      </label>
+    );
+  if (f.type === "file")
+    return (
+      <div>
+        {label}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="btn btn-glass cursor-pointer !py-2 text-sm">
+            {busy ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />} {value ? "Remplacer le fichier" : "Choisir un fichier"}
+            <input
+              type="file"
+              accept={f.accept}
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const max = (f.maxMb ?? 45) * 1024 * 1024;
+                if (file.size > max) return notify({ title: "Fichier trop lourd", subtitle: `${f.maxMb ?? 45} Mo maximum`, tone: "error" });
+                setBusy(true);
+                try {
+                  const url = await upload(file, f.folder);
+                  onChange(url);
+                  patch?.({ [f.nameField]: file.name, [f.sizeField]: file.size });
+                  notify({ title: "Fichier envoyé", subtitle: file.name, tone: "success" });
+                } catch (err) {
+                  notify({ title: "Envoi impossible", subtitle: err instanceof Error ? err.message : "", tone: "error" });
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
+          </label>
+          {Boolean(value) && (
+            <a href={String(value)} target="_blank" className="truncate text-sm text-ultra-300 underline">
+              Voir le fichier actuel
+            </a>
+          )}
+        </div>
+      </div>
     );
   if (f.type === "image")
     return (

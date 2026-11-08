@@ -69,3 +69,29 @@ export type SiteData = {
   timeline: TimelineItem[];
   certifications: Certification[];
 };
+
+export type Post = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  cover_url: string;
+  tags: string[];
+  published: boolean;
+  published_at: string;
+  position: number;
+};
+
+export type DocumentItem = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  published: boolean;
+  position: number;
+  created_at: string;
+};

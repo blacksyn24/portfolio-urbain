@@ -1,9 +1,11 @@
 import "server-only";
+import { cache } from "react";
 import * as fallback from "@/content/profile";
 import { serverClient } from "./supabase";
-import type { SiteData, Settings } from "./types";
+import type { Certification, DocumentItem, Post, Project, Settings, SiteData, SkillGroup, TimelineItem } from "./types";
 
-const fallbackData: SiteData = {
+// Contenu local de secours si Supabase est injoignable.
+const fb: SiteData = {
   settings: {
     first_name: fallback.profile.firstName,
     last_name: fallback.profile.lastName,
@@ -32,28 +34,35 @@ const fallbackData: SiteData = {
   certifications: fallback.certifications.map((c, i) => ({ id: String(i), ...c, credential_url: "", position: i, published: true })),
 };
 
-/** Contenu public du site, lu dans Supabase (repli sur le contenu local si la base est injoignable). */
-export async function getSiteData(): Promise<SiteData> {
+async function read<T>(label: string, run: () => PromiseLike<{ data: unknown; error: unknown }>, fallbackValue: T): Promise<T> {
   try {
-    const db = serverClient();
-    const [s, sk, p, t, c] = await Promise.all([
-      db.from("settings").select("*").eq("id", 1).single(),
-      db.from("skill_groups").select("*").eq("published", true).order("position"),
-      db.from("projects").select("*").eq("published", true).order("position"),
-      db.from("timeline").select("*").eq("published", true).order("position"),
-      db.from("certifications").select("*").eq("published", true).order("position"),
-    ]);
-    const err = s.error || sk.error || p.error || t.error || c.error;
-    if (err) throw err;
-    return {
-      settings: s.data as Settings,
-      skills: sk.data ?? [],
-      projects: p.data ?? [],
-      timeline: t.data ?? [],
-      certifications: c.data ?? [],
-    };
+    const { data, error } = await run();
+    if (error) throw error;
+    return (data as T) ?? fallbackValue;
   } catch (e) {
-    console.error("[data] Supabase indisponible, contenu local utilisé :", e);
-    return fallbackData;
+    console.error(`[data] ${label} : Supabase indisponible, contenu de secours utilisé`, e);
+    return fallbackValue;
   }
+}
+
+const db = () => serverClient();
+
+export const getSettings = cache(() => read<Settings>("settings", () => db().from("settings").select("*").eq("id", 1).single(), fb.settings));
+export const getSkills = cache(() => read<SkillGroup[]>("skills", () => db().from("skill_groups").select("*").eq("published", true).order("position"), fb.skills));
+export const getProjects = cache(() => read<Project[]>("projects", () => db().from("projects").select("*").eq("published", true).order("position"), fb.projects));
+export const getProject = cache(async (slug: string) => (await getProjects()).find((p) => p.slug === slug) ?? null);
+export const getTimeline = cache(() => read<TimelineItem[]>("timeline", () => db().from("timeline").select("*").eq("published", true).order("position"), fb.timeline));
+export const getCertifications = cache(() =>
+  read<Certification[]>("certifications", () => db().from("certifications").select("*").eq("published", true).order("position"), fb.certifications)
+);
+export const getPosts = cache(() =>
+  read<Post[]>("posts", () => db().from("posts").select("*").eq("published", true).lte("published_at", new Date().toISOString()).order("published_at", { ascending: false }), [])
+);
+export const getPost = cache(async (slug: string) => (await getPosts()).find((p) => p.slug === slug) ?? null);
+export const getDocuments = cache(() => read<DocumentItem[]>("documents", () => db().from("documents").select("*").eq("published", true).order("position"), []));
+
+/** Tout le contenu (utilisé par le chatbot). */
+export async function getSiteData(): Promise<SiteData> {
+  const [settings, skills, projects, timeline, certifications] = await Promise.all([getSettings(), getSkills(), getProjects(), getTimeline(), getCertifications()]);
+  return { settings, skills, projects, timeline, certifications };
 }

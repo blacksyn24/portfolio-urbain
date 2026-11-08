@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Download, MapPin } from "lucide-react";
 import type { Settings } from "@/lib/types";
 import { Reveal } from "../Reveal";
@@ -25,9 +26,9 @@ export function Hero({ settings: profile, badge }: { settings: Settings; badge?:
           <p className="mt-6 max-w-xl leading-relaxed text-ultra-200/85">{profile.tagline}</p>
         </div>
         <div className="mt-9 flex flex-wrap items-center gap-3">
-          <a href="#projets" className="btn btn-primary">
+          <Link href="/projets" className="btn btn-primary">
             Voir mes labs <ArrowRight size={18} />
-          </a>
+          </Link>
           {profile.cv_url && (
             <TrackedLink event="cv_download" label="hero" href={profile.cv_url} target="_blank" rel="noopener" className="btn btn-glass">
               <Download size={18} /> Télécharger le CV

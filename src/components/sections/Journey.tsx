@@ -5,11 +5,11 @@ import { SectionTitle } from "../SectionTitle";
 
 const kindIcon = { formation: GraduationCap, competition: Trophy, projet: Wrench, experience: Briefcase } as const;
 
-export function Journey({ timeline, certifications }: { timeline: TimelineItem[]; certifications: Certification[] }) {
+export function Journey({ timeline, certifications, headless }: { timeline: TimelineItem[]; certifications: Certification[]; headless?: boolean }) {
   if (!timeline.length && !certifications.length) return null;
   return (
-    <section id="parcours" className="mx-auto max-w-6xl px-4 pt-28">
-      <SectionTitle eyebrow="// parcours" title="Formation, expériences & certifications" />
+    <section id="parcours" className={`mx-auto max-w-6xl px-4 ${headless ? "pt-10" : "pt-28"}`}>
+      {!headless && <SectionTitle eyebrow="// parcours" title="Formation, expériences & certifications" />}
       <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         <Reveal className="glass rounded-[2.25rem] p-6 sm:p-8">
           <ol className="relative space-y-7 before:absolute before:bottom-2 before:left-[19px] before:top-2 before:w-px before:bg-gradient-to-b before:from-ultra-300/60 before:to-transparent">

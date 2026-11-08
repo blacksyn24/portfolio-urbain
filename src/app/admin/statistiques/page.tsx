@@ -16,6 +16,7 @@ const eventLabel: Record<string, string> = {
   contact_click: "Clics sur l'email",
   chat_open: "Ouvertures du chatbot",
   social_click: "Clics réseaux sociaux",
+  document_download: "Documents téléchargés",
 };
 
 export default function StatsPage() {
@@ -81,6 +82,14 @@ export default function StatsPage() {
               <RankList rows={countBy(events, (e) => eventLabel[e.type] ?? e.type)} empty="Aucune interaction sur la période." />
             </section>
           </div>
+          <section className="glass rounded-[2rem] p-6">
+            <h2 className="mb-4 font-semibold">Pages les plus vues</h2>
+            <RankList rows={countBy(views, (v) => v.path, 8)} />
+          </section>
+          <section className="glass rounded-[2rem] p-6">
+            <h2 className="mb-4 font-semibold">Documents les plus téléchargés</h2>
+            <RankList rows={countBy(events.filter((e) => e.type === "document_download"), (e) => e.label, 8)} empty="Aucun téléchargement sur la période." />
+          </section>
           <section className="glass rounded-[2rem] p-6">
             <h2 className="mb-4 font-semibold">Projets les plus consultés</h2>
             <RankList rows={countBy(events.filter((e) => e.type === "project_click"), (e) => e.label.split(":")[0], 8)} empty="Ajoutez des liens de démo ou de code à vos projets pour suivre les clics." />

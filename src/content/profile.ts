@@ -179,10 +179,16 @@ export const certifications: {
 ];
 
 export const navItems = [
-  { id: "accueil", label: "Accueil", icon: "home" },
-  { id: "apropos", label: "À propos", icon: "user" },
-  { id: "competences", label: "Compétences", icon: "cpu" },
-  { id: "projets", label: "Projets", icon: "folder" },
-  { id: "parcours", label: "Parcours", icon: "clock" },
-  { id: "contact", label: "Contact", icon: "mail" },
+  { href: "/", label: "Accueil", icon: "home" },
+  { href: "/a-propos", label: "À propos", icon: "user" },
+  { href: "/projets", label: "Projets", icon: "folder" },
+  { href: "/parcours", label: "Parcours", icon: "clock" },
+  { href: "/blog", label: "Blog", icon: "pen" },
+  { href: "/ressources", label: "Ressources", icon: "download" },
+  { href: "/contact", label: "Contact", icon: "mail" },
 ] as const;
+
+export function navLabel(pathname: string) {
+  const item = [...navItems].sort((a, b) => b.href.length - a.href.length).find((n) => (n.href === "/" ? pathname === "/" : pathname.startsWith(n.href)));
+  return item?.label ?? "Accueil";
+}

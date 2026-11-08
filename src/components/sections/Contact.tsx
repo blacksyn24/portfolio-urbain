@@ -10,7 +10,7 @@ import { SectionTitle } from "../SectionTitle";
 
 type Errors = Partial<Record<"name" | "email" | "subject" | "message", string>>;
 
-export function Contact({ settings: profile }: { settings: Settings }) {
+export function Contact({ settings: profile, headless }: { settings: Settings; headless?: boolean }) {
   const { notify } = useIsland();
   const [sending, setSending] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -45,8 +45,8 @@ export function Contact({ settings: profile }: { settings: Settings }) {
   }
 
   return (
-    <section id="contact" className="mx-auto max-w-6xl px-4 pt-28">
-      <SectionTitle eyebrow="// contact" title="Travaillons ensemble" intro={`${profile.availability}. Écrivez-moi pour un stage, un projet réseau ou un échange technique.`} />
+    <section id="contact" className={`mx-auto max-w-6xl px-4 ${headless ? "pt-10" : "pt-28"}`}>
+      {!headless && <SectionTitle eyebrow="// contact" title="Travaillons ensemble" intro={`${profile.availability}. Écrivez-moi pour un stage, un projet réseau ou un échange technique.`} />}
       <div className="grid gap-5 lg:grid-cols-[1fr_1.6fr]">
         <Reveal className="glass flex flex-col gap-3 self-start rounded-[2.25rem] p-6">
           <a href={`mailto:${profile.email}`} onClick={() => track("contact_click", "email")} className="flex items-center gap-3 rounded-[1.4rem] bg-white/5 p-4 transition-colors hover:bg-white/10">

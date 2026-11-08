@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { getSiteData } from "@/lib/data";
+import { getDocuments, getPosts, getSiteData } from "@/lib/data";
 import { serverClient } from "@/lib/supabase";
 import type { SiteData } from "@/lib/types";
 import { rateLimit } from "@/lib/rate-limit";
@@ -19,7 +19,7 @@ const body = z.object({
     .max(20),
 });
 
-function buildSystemPrompt(d: SiteData): string {
+function buildSystemPrompt(d: SiteData, extra: { posts: { title: string; slug: string; excerpt: string }[]; docs: { title: string; category: string }[] }): string {
   const s = d.settings;
   const fullName = `${s.first_name} ${s.last_name}`;
   const lines = [
@@ -49,6 +49,9 @@ function buildSystemPrompt(d: SiteData): string {
     "## Certifications",
     ...d.certifications.map((c) => `- ${c.name} (${c.issuer}, ${c.year}) : ${c.status === "obtenue" ? "obtenue" : c.status === "en-cours" ? "en cours" : "planifiée"}`),
   ];
+  if (extra.posts.length) lines.push("", "## Articles du blog (page /blog)", ...extra.posts.map((p) => `- ${p.title} (/blog/${p.slug}) : ${p.excerpt}`));
+  if (extra.docs.length) lines.push("", "## Documents téléchargeables (page /ressources)", ...extra.docs.map((x) => `- ${x.title} (${x.category})`));
+  lines.push("", "Pages du site : / (accueil), /a-propos, /projets, /parcours, /blog, /ressources, /contact. Oriente le visiteur vers la bonne page quand c'est utile.");
   if (s.chatbot_instructions.trim()) lines.push("", "## Consignes supplémentaires de " + s.first_name, s.chatbot_instructions.trim());
   return lines.join("\n");
 }
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
     return Response.json({ message: "Requête invalide." }, { status: 400 });
   }
 
-  const data = await getSiteData();
+  const [data, posts, docs] = await Promise.all([getSiteData(), getPosts(), getDocuments()]);
   if (!data.settings.chatbot_enabled) {
     return Response.json({ message: "Le chatbot est désactivé pour le moment." }, { status: 503 });
   }
@@ -84,7 +87,7 @@ export async function POST(req: Request) {
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
     output_config: { effort: "low" },
-    system: [{ type: "text", text: buildSystemPrompt(data), cache_control: { type: "ephemeral" } }],
+    system: [{ type: "text", text: buildSystemPrompt(data, { posts, docs }), cache_control: { type: "ephemeral" } }],
     messages,
   } as Parameters<typeof client.beta.messages.stream>[0]);
 

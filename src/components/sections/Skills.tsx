@@ -5,11 +5,11 @@ import { SectionTitle } from "../SectionTitle";
 
 const icons = { route: Route, network: Network, shield: ShieldCheck, flask: FlaskConical, terminal: TerminalSquare, code: Code2 } as const;
 
-export function Skills({ skills: skillGroups }: { skills: SkillGroup[] }) {
+export function Skills({ skills: skillGroups, headless }: { skills: SkillGroup[]; headless?: boolean }) {
   if (!skillGroups.length) return null;
   return (
-    <section id="competences" className="mx-auto max-w-6xl px-4 pt-28">
-      <SectionTitle eyebrow="// compétences" title="Ma stack technique" intro="Regroupée par domaine, et pratiquée en laboratoire." />
+    <section id="competences" className={`mx-auto max-w-6xl px-4 ${headless ? "pt-10" : "pt-28"}`}>
+      {!headless && <SectionTitle eyebrow="// compétences" title="Ma stack technique" intro="Regroupée par domaine, et pratiquée en laboratoire." />}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {skillGroups.map((g, i) => {
           const Icon = icons[g.icon as keyof typeof icons];

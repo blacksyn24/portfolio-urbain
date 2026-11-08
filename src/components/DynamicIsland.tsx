@@ -1,14 +1,16 @@
 "use client";
 
 import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "framer-motion";
-import { Check, Clock, Cpu, Download, FolderGit2, Home, Info, Mail, User, X } from "lucide-react";
+import { Check, Clock, Download, FileDown, FolderGit2, Home, Info, Mail, PenLine, User, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { navItems } from "@/content/profile";
+import { navItems, navLabel } from "@/content/profile";
 import { track } from "@/lib/track";
 import { useIsland } from "./IslandProvider";
 
-const icons = { home: Home, user: User, cpu: Cpu, folder: FolderGit2, clock: Clock, mail: Mail } as const;
+const icons = { home: Home, user: User, folder: FolderGit2, clock: Clock, pen: PenLine, download: FileDown, mail: Mail } as const;
 const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.9 } as const;
 const fade = {
   initial: { opacity: 0, filter: "blur(6px)", scale: 0.96 },
@@ -32,29 +34,18 @@ function ProgressRing() {
 export function DynamicIsland({ photo, cvUrl, name }: { photo: string; cvUrl: string; name: string }) {
   const { notice, clear } = useIsland();
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string>("accueil");
+  const pathname = usePathname();
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Section active
+  useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
-      { rootMargin: "-45% 0px -50% 0px" }
-    );
-    navItems.forEach((n) => {
-      const el = document.getElementById(n.id);
-      if (el) obs.observe(el);
-    });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
-    return () => {
-      obs.disconnect();
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const mode = notice ? "notice" : open ? "menu" : "idle";
-  const activeLabel = navItems.find((n) => n.id === active)?.label ?? "Accueil";
+  const activeLabel = navLabel(pathname);
 
   const enter = () => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
@@ -106,34 +97,34 @@ export function DynamicIsland({ photo, cvUrl, name }: { photo: string; cvUrl: st
           )}
 
           {mode === "menu" && (
-            <motion.div key="menu" {...fade} className="flex flex-col items-stretch gap-2 p-2 sm:flex-row sm:items-center">
-              <ul className="grid grid-cols-3 gap-1 sm:flex">
+            <motion.div key="menu" {...fade} className="flex flex-col items-stretch gap-2 p-2 md:flex-row md:items-center">
+              <ul className="grid grid-cols-4 gap-1 md:flex">
                 {navItems.map((n) => {
                   const Icon = icons[n.icon];
-                  const isActive = n.id === active;
+                  const isActive = n.label === activeLabel;
                   return (
-                    <li key={n.id}>
-                      <a
-                        href={`#${n.id}`}
+                    <li key={n.href}>
+                      <Link
+                        href={n.href}
                         onClick={() => setOpen(false)}
-                        className={`flex flex-col items-center gap-1 rounded-3xl px-3.5 py-2 text-[0.72rem] font-medium transition-colors ${
+                        className={`flex flex-col items-center gap-1 rounded-3xl px-3 py-2 text-[0.72rem] font-medium transition-colors ${
                           isActive ? "bg-white/12 text-white shadow-[inset_0_1px_0_rgb(255_255_255/.25)]" : "text-ultra-200 hover:bg-white/7 hover:text-white"
                         }`}
                       >
                         <Icon size={19} strokeWidth={1.7} />
                         {n.label}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
               </ul>
-              <div className="flex items-center gap-1 sm:pl-1">
+              <div className="flex items-center gap-1 md:pl-1">
                 {cvUrl && (
                   <a href={cvUrl} target="_blank" rel="noopener" onClick={() => track("cv_download", "island")} className="btn btn-primary flex-1 !px-4 !py-2.5 text-sm">
                     <Download size={16} /> CV
                   </a>
                 )}
-                <button onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-full text-ultra-200 hover:bg-white/10 sm:hidden" aria-label="Fermer">
+                <button onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-full text-ultra-200 hover:bg-white/10 md:hidden" aria-label="Fermer">
                   <X size={18} />
                 </button>
               </div>

@@ -2,7 +2,7 @@
 
 import { browserClient } from "./supabase";
 
-type EventType = "cv_download" | "project_click" | "contact_click" | "chat_open" | "social_click";
+type EventType = "cv_download" | "project_click" | "contact_click" | "chat_open" | "social_click" | "document_download";
 
 export function sessionId(): string {
   try {

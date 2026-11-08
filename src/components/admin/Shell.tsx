@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, BarChart3, Bot, Clock, Cpu, ExternalLink, FolderGit2, LayoutDashboard, LogOut, Mail, Menu, Settings, X } from "lucide-react";
+import { Award, BarChart3, Bot, Clock, Cpu, ExternalLink, FileDown, FolderGit2, LayoutDashboard, LogOut, Mail, Menu, PenLine, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,6 +15,8 @@ const nav = [
   { href: "/admin/competences", label: "Compétences", icon: Cpu },
   { href: "/admin/parcours", label: "Parcours", icon: Clock },
   { href: "/admin/certifications", label: "Certifications", icon: Award },
+  { href: "/admin/blog", label: "Blog", icon: PenLine },
+  { href: "/admin/ressources", label: "Ressources", icon: FileDown },
   { href: "/admin/chatbot", label: "Chatbot", icon: Bot },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings },
 ];

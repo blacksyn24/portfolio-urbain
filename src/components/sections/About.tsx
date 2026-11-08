@@ -3,10 +3,10 @@ import type { Settings } from "@/lib/types";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
 
-export function About({ settings: profile }: { settings: Settings }) {
+export function About({ settings: profile, headless }: { settings: Settings; headless?: boolean }) {
   return (
-    <section id="apropos" className="mx-auto max-w-6xl px-4 pt-28">
-      <SectionTitle eyebrow="// à propos" title="Apprendre en construisant" />
+    <section id="apropos" className={`mx-auto max-w-6xl px-4 ${headless ? "pt-10" : "pt-28"}`}>
+      {!headless && <SectionTitle eyebrow="// à propos" title="Apprendre en construisant" />}
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
         <Reveal className="glass rounded-[2.25rem] p-7 sm:p-9">
           <div className="space-y-4 text-[1.02rem] leading-relaxed text-ultra-200/90">
