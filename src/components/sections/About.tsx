@@ -1,9 +1,9 @@
 import { Heart, Languages } from "lucide-react";
-import { profile } from "@/content/profile";
+import type { Settings } from "@/lib/types";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
 
-export function About() {
+export function About({ settings: profile }: { settings: Settings }) {
   return (
     <section id="apropos" className="mx-auto max-w-6xl px-4 pt-28">
       <SectionTitle eyebrow="// à propos" title="Apprendre en construisant" />

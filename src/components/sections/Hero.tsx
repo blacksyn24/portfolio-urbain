@@ -1,9 +1,10 @@
 import Image from "next/image";
 import { ArrowRight, Download, MapPin } from "lucide-react";
-import { profile } from "@/content/profile";
+import type { Settings } from "@/lib/types";
 import { Reveal } from "../Reveal";
+import { TrackedLink } from "../TrackedLink";
 
-export function Hero() {
+export function Hero({ settings: profile, badge }: { settings: Settings; badge?: { title: string; year: string } }) {
   return (
     <section id="accueil" className="mx-auto grid max-w-6xl gap-5 px-4 pt-28 sm:pt-32 lg:grid-cols-[1.05fr_1fr]">
       <Reveal className="glass glass-strong flex flex-col justify-between rounded-[2.5rem] p-7 sm:p-10">
@@ -15,9 +16,9 @@ export function Hero() {
             <span className="chip font-mono text-ultra-200">@{profile.handle}</span>
           </div>
           <h1 className="text-gradient text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
-            {profile.firstName}
+            {profile.first_name}
             <br />
-            <span className="font-bold">{profile.lastName}</span>
+            <span className="font-bold">{profile.last_name}</span>
           </h1>
           <p className="mt-5 text-lg font-medium text-ultra-50 sm:text-xl">{profile.title}</p>
           <p className="mt-1 font-mono text-xs text-ultra-300 sm:text-sm">{profile.subtitle}</p>
@@ -27,9 +28,11 @@ export function Hero() {
           <a href="#projets" className="btn btn-primary">
             Voir mes labs <ArrowRight size={18} />
           </a>
-          <a href={profile.cvUrl} download className="btn btn-glass">
-            <Download size={18} /> Télécharger le CV
-          </a>
+          {profile.cv_url && (
+            <TrackedLink event="cv_download" label="hero" href={profile.cv_url} target="_blank" rel="noopener" className="btn btn-glass">
+              <Download size={18} /> Télécharger le CV
+            </TrackedLink>
+          )}
           <span className="flex items-center gap-1.5 text-sm text-ultra-200/70">
             <MapPin size={15} /> {profile.location}
           </span>
@@ -40,21 +43,23 @@ export function Hero() {
         <Reveal delay={0.08} className="glass relative min-h-[420px] overflow-hidden rounded-[2.5rem] p-2">
           <div className="relative h-full min-h-[404px] overflow-hidden rounded-[2.1rem]">
             <Image
-              src={profile.photo}
-              alt={`Portrait de ${profile.firstName} ${profile.lastName}`}
+              src={profile.photo_url}
+              alt={`Portrait de ${profile.first_name} ${profile.last_name}`}
               fill
               priority
               sizes="(min-width: 1024px) 520px, 100vw"
               className="object-cover object-[50%_20%]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/5 to-transparent" />
-            <div className="glass glass-dark absolute inset-x-3 bottom-3 flex items-center justify-between rounded-[1.6rem] px-5 py-3.5">
-              <div>
-                <p className="text-sm font-semibold">CCNA 2 en cours</p>
-                <p className="text-xs text-ultra-200/80">Switching, Routing & Wireless</p>
+            {badge && (
+              <div className="glass glass-dark absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-[1.6rem] px-5 py-3.5">
+                <div>
+                  <p className="text-xs text-ultra-200/80">En cours</p>
+                  <p className="text-sm font-semibold">{badge.title}</p>
+                </div>
+                <span className="font-mono text-xs text-ultra-300">{badge.year}</span>
               </div>
-              <span className="font-mono text-xs text-ultra-300">2026</span>
-            </div>
+            )}
           </div>
         </Reveal>
         <div className="grid grid-cols-3 gap-3">

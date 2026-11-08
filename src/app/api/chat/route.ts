@@ -1,0 +1,128 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
+import { getSiteData } from "@/lib/data";
+import { serverClient } from "@/lib/supabase";
+import type { SiteData } from "@/lib/types";
+import { rateLimit } from "@/lib/rate-limit";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+const MODEL = "claude-opus-5-5";
+
+const body = z.object({
+  conversationId: z.string().uuid(),
+  sessionId: z.string().max(64).optional().default(""),
+  messages: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) }))
+    .min(1)
+    .max(20),
+});
+
+function buildSystemPrompt(d: SiteData): string {
+  const s = d.settings;
+  const fullName = `${s.first_name} ${s.last_name}`;
+  const lines = [
+    `Tu es l'assistant du portfolio de ${fullName} (pseudo ${s.handle}). Tu réponds aux visiteurs — souvent des recruteurs ou des entreprises — au sujet de son profil.`,
+    `Réponds dans la langue du visiteur, en 2 à 5 phrases, en texte simple (pas de Markdown). Parle de ${s.first_name} à la troisième personne.`,
+    `Base-toi uniquement sur les informations ci-dessous. Si une information n'y figure pas (salaire, téléphone, adresse précise, opinions…), dis que tu ne sais pas et propose le formulaire de contact du site. N'invente jamais de compétence, de diplôme ou d'expérience.`,
+    "",
+    "## Profil",
+    `Titre : ${s.title} — ${s.subtitle}`,
+    `Présentation : ${s.tagline}`,
+    `Localisation : ${s.location}`,
+    `Disponibilité : ${s.availability}`,
+    `Email public : ${s.email}`,
+    ...s.about.map((p) => `- ${p}`),
+    `Langues : ${s.languages.map((l) => `${l.name} (${l.level})`).join(", ")}`,
+    `Centres d'intérêt : ${s.interests.join(", ")}`,
+    "",
+    "## Compétences",
+    ...d.skills.map((g) => `- ${g.name} : ${g.items.join(", ")}`),
+    "",
+    "## Projets et labs",
+    ...d.projects.map((p) => `- ${p.title} (${p.category}, ${p.year}) : ${p.summary}${p.content ? ` ${p.content}` : ""} [${p.tags.join(", ")}]`),
+    "",
+    "## Parcours",
+    ...d.timeline.map((t) => `- ${t.period} : ${t.title} — ${t.place}${t.detail ? `. ${t.detail}` : ""}`),
+    "",
+    "## Certifications",
+    ...d.certifications.map((c) => `- ${c.name} (${c.issuer}, ${c.year}) : ${c.status === "obtenue" ? "obtenue" : c.status === "en-cours" ? "en cours" : "planifiée"}`),
+  ];
+  if (s.chatbot_instructions.trim()) lines.push("", "## Consignes supplémentaires de " + s.first_name, s.chatbot_instructions.trim());
+  return lines.join("\n");
+}
+
+export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json({ message: "Le chatbot n'est pas encore activé." }, { status: 503 });
+  }
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+  if (!rateLimit(`chat:${ip}`, 15, 60_000)) {
+    return Response.json({ message: "Trop de messages d'un coup. Réessayez dans une minute." }, { status: 429 });
+  }
+
+  const parsed = body.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return Response.json({ message: "Requête invalide." }, { status: 400 });
+  const { conversationId, sessionId, messages } = parsed.data;
+  if (messages[0].role !== "user" || messages.at(-1)!.role !== "user") {
+    return Response.json({ message: "Requête invalide." }, { status: 400 });
+  }
+
+  const data = await getSiteData();
+  if (!data.settings.chatbot_enabled) {
+    return Response.json({ message: "Le chatbot est désactivé pour le moment." }, { status: 503 });
+  }
+
+  const client = new Anthropic();
+  const db = serverClient();
+  const userMessage = messages.at(-1)!.content;
+
+  const stream = client.beta.messages.stream({
+    model: MODEL,
+    max_tokens: 2048,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    output_config: { effort: "low" },
+    system: [{ type: "text", text: buildSystemPrompt(data), cache_control: { type: "ephemeral" } }],
+    messages,
+  } as Parameters<typeof client.beta.messages.stream>[0]);
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let answer = "";
+      try {
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            answer += event.delta.text;
+            controller.enqueue(encoder.encode(event.delta.text));
+          }
+        }
+        const final = await stream.finalMessage();
+        if (final.stop_reason === "refusal") {
+          const msg = "Je ne peux pas répondre à cette question. Utilisez le formulaire de contact pour écrire directement à Urbain.";
+          answer = msg;
+          controller.enqueue(encoder.encode(msg));
+        }
+      } catch (e) {
+        console.error("[chat]", e);
+        const msg = answer ? "" : "Le chatbot est momentanément indisponible. Réessayez plus tard ou utilisez le formulaire de contact.";
+        if (msg) controller.enqueue(encoder.encode(msg));
+        answer ||= msg;
+      } finally {
+        controller.close();
+        // Historique pour le dashboard (ne bloque pas la réponse)
+        await db.from("chat_conversations").upsert({ id: conversationId, session_id: sessionId }, { onConflict: "id", ignoreDuplicates: true });
+        await db.from("chat_messages").insert([
+          { conversation_id: conversationId, role: "user", content: userMessage.slice(0, 8000) },
+          { conversation_id: conversationId, role: "assistant", content: answer.slice(0, 8000) },
+        ]);
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}

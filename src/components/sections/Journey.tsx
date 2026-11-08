@@ -1,11 +1,12 @@
 import { Award, BadgeCheck, Briefcase, GraduationCap, Hourglass, Trophy, Wrench } from "lucide-react";
-import { certifications, timeline } from "@/content/profile";
+import type { Certification, TimelineItem } from "@/lib/types";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
 
 const kindIcon = { formation: GraduationCap, competition: Trophy, projet: Wrench, experience: Briefcase } as const;
 
-export function Journey() {
+export function Journey({ timeline, certifications }: { timeline: TimelineItem[]; certifications: Certification[] }) {
+  if (!timeline.length && !certifications.length) return null;
   return (
     <section id="parcours" className="mx-auto max-w-6xl px-4 pt-28">
       <SectionTitle eyebrow="// parcours" title="Formation, expériences & certifications" />
@@ -48,7 +49,7 @@ export function Journey() {
                   </span>
                 ) : (
                   <span className="chip !text-ultra-200">
-                    <Hourglass size={14} /> En cours
+                    <Hourglass size={14} /> {c.status === "en-cours" ? "En cours" : "Planifiée"}
                   </span>
                 )}
               </div>

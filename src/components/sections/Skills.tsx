@@ -1,11 +1,12 @@
 import { Code2, FlaskConical, Network, Route, ShieldCheck, TerminalSquare } from "lucide-react";
-import { skillGroups } from "@/content/profile";
+import type { SkillGroup } from "@/lib/types";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
 
 const icons = { route: Route, network: Network, shield: ShieldCheck, flask: FlaskConical, terminal: TerminalSquare, code: Code2 } as const;
 
-export function Skills() {
+export function Skills({ skills: skillGroups }: { skills: SkillGroup[] }) {
+  if (!skillGroups.length) return null;
   return (
     <section id="competences" className="mx-auto max-w-6xl px-4 pt-28">
       <SectionTitle eyebrow="// compétences" title="Ma stack technique" intro="Regroupée par domaine, et pratiquée en laboratoire." />

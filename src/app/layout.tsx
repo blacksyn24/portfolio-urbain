@@ -3,7 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { IslandProvider } from "@/components/IslandProvider";
-import { DynamicIsland } from "@/components/DynamicIsland";
 import { LiquidBackground } from "@/components/LiquidBackground";
 
 export const metadata: Metadata = {
@@ -20,7 +19,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <IslandProvider>
           <LiquidBackground />
-          <DynamicIsland />
           {children}
         </IslandProvider>
       </body>

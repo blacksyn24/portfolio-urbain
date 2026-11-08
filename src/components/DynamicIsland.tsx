@@ -4,7 +4,8 @@ import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "fra
 import { Check, Clock, Cpu, Download, FolderGit2, Home, Info, Mail, User, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { navItems, profile } from "@/content/profile";
+import { navItems } from "@/content/profile";
+import { track } from "@/lib/track";
 import { useIsland } from "./IslandProvider";
 
 const icons = { home: Home, user: User, cpu: Cpu, folder: FolderGit2, clock: Clock, mail: Mail } as const;
@@ -28,7 +29,7 @@ function ProgressRing() {
   );
 }
 
-export function DynamicIsland() {
+export function DynamicIsland({ photo, cvUrl, name }: { photo: string; cvUrl: string; name: string }) {
   const { notice, clear } = useIsland();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string>("accueil");
@@ -85,10 +86,10 @@ export function DynamicIsland() {
               aria-label="Ouvrir le menu"
             >
               <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-white/20">
-                <Image src={profile.photo} alt="" fill sizes="32px" className="object-cover object-top" />
+                <Image src={photo} alt="" fill sizes="32px" className="object-cover object-top" />
               </span>
               <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-                Urbain
+                {name}
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ok opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-ok" />
@@ -127,9 +128,11 @@ export function DynamicIsland() {
                 })}
               </ul>
               <div className="flex items-center gap-1 sm:pl-1">
-                <a href={profile.cvUrl} download className="btn btn-primary flex-1 !px-4 !py-2.5 text-sm">
-                  <Download size={16} /> CV
-                </a>
+                {cvUrl && (
+                  <a href={cvUrl} target="_blank" rel="noopener" onClick={() => track("cv_download", "island")} className="btn btn-primary flex-1 !px-4 !py-2.5 text-sm">
+                    <Download size={16} /> CV
+                  </a>
+                )}
                 <button onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-full text-ultra-200 hover:bg-white/10 sm:hidden" aria-label="Fermer">
                   <X size={18} />
                 </button>

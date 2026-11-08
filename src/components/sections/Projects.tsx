@@ -1,4 +1,6 @@
-import { projects, type Project } from "@/content/profile";
+import { Code2, ExternalLink } from "lucide-react";
+import type { Project } from "@/lib/types";
+import { TrackedLink } from "../TrackedLink";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
 
@@ -32,7 +34,8 @@ function Topology({ kind }: { kind: Project["topology"] }) {
   );
 }
 
-export function Projects() {
+export function Projects({ projects }: { projects: Project[] }) {
+  if (!projects.length) return null;
   return (
     <section id="projets" className="mx-auto max-w-6xl px-4 pt-28">
       <SectionTitle eyebrow="// projets & labs" title="Ce que j'ai construit" intro="Labs réseau documentés et projets réalisés en formation ou en stage." />
@@ -41,9 +44,14 @@ export function Projects() {
           <Reveal key={p.slug} delay={(i % 2) * 0.07}>
             <article className="glass group flex h-full flex-col overflow-hidden rounded-[2.25rem] p-2 transition-transform duration-500 [transition-timing-function:var(--spring)] hover:-translate-y-1">
               <div className="relative h-44 overflow-hidden rounded-[1.85rem] bg-gradient-to-br from-ultra-700/50 via-ink-900/60 to-ink-950/80">
-                <div className="absolute inset-0 p-6 transition-transform duration-700 group-hover:scale-105">
-                  <Topology kind={p.topology} />
-                </div>
+                {p.cover_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute inset-0 p-6 transition-transform duration-700 group-hover:scale-105">
+                    <Topology kind={p.topology} />
+                  </div>
+                )}
                 <div className="absolute left-3 top-3 flex gap-2">
                   <span className="chip glass-dark">{p.category}</span>
                   <span className="chip glass-dark font-mono">{p.year}</span>
@@ -52,6 +60,20 @@ export function Projects() {
               <div className="flex flex-1 flex-col p-5">
                 <h3 className="text-lg font-semibold">{p.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-ultra-200/80">{p.summary}</p>
+                {(p.demo_url || p.repo_url) && (
+                  <div className="mt-4 flex gap-2">
+                    {p.demo_url && (
+                      <TrackedLink event="project_click" label={`${p.slug}:demo`} href={p.demo_url} target="_blank" rel="noopener" className="btn btn-glass !px-4 !py-2 text-sm">
+                        <ExternalLink size={15} /> Voir
+                      </TrackedLink>
+                    )}
+                    {p.repo_url && (
+                      <TrackedLink event="project_click" label={`${p.slug}:code`} href={p.repo_url} target="_blank" rel="noopener" className="btn btn-glass !px-4 !py-2 text-sm">
+                        <Code2 size={15} /> Code
+                      </TrackedLink>
+                    )}
+                  </div>
+                )}
                 <div className="mt-5 flex flex-wrap gap-2">
                   {p.tags.map((t) => (
                     <span key={t} className="chip font-mono !text-[0.7rem]">
