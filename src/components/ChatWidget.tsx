@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, MessageCircle, Send, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { sessionId, track } from "@/lib/track";
 import { useIsland } from "./IslandProvider";
 
@@ -103,7 +104,23 @@ export function ChatWidget({ photo, firstName }: { photo: string; firstName: str
               </Bubble>
               {messages.map((m, i) => (
                 <Bubble key={i} role={m.role}>
-                  {m.content || <Loader2 size={15} className="animate-spin text-ultra-300" />}
+                  {!m.content ? (
+                    <Loader2 size={15} className="animate-spin text-ultra-300" />
+                  ) : m.role === "assistant" ? (
+                    <ReactMarkdown
+                      components={{
+                        a: ({ href, children }) => (
+                          <a href={href} className="underline" target={href?.startsWith("http") ? "_blank" : undefined} rel="noopener">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {m.content}
+                    </ReactMarkdown>
+                  ) : (
+                    m.content
+                  )}
                 </Bubble>
               ))}
               {messages.length === 0 && (
@@ -156,12 +173,14 @@ export function ChatWidget({ photo, firstName }: { photo: string; firstName: str
 
 function Bubble({ role, children }: { role: "user" | "assistant"; children: React.ReactNode }) {
   return (
-    <p
-      className={`max-w-[85%] whitespace-pre-wrap px-4 py-2.5 text-sm leading-relaxed ${
-        role === "user" ? "ml-auto rounded-3xl rounded-br-lg bg-ultra-500/80 text-white" : "rounded-3xl rounded-bl-lg bg-white/8"
+    <div
+      className={`max-w-[85%] px-4 py-2.5 text-sm leading-relaxed ${
+        role === "user"
+          ? "ml-auto whitespace-pre-wrap rounded-3xl rounded-br-lg bg-ultra-500/80 text-white"
+          : "chat-md rounded-3xl rounded-bl-lg bg-white/8"
       }`}
     >
       {children}
-    </p>
+    </div>
   );
 }
