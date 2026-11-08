@@ -47,11 +47,24 @@ export default async function ProjetPage({ params }: Props) {
       <Reveal delay={0.06} className="glass mt-8 rounded-[2.4rem] p-2">
         <ProjectCover p={p} className="h-64 sm:h-96" />
       </Reveal>
-      {p.content ? (
-        <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
-          <Markdown>{p.content}</Markdown>
-        </div>
-      ) : null}
+      {(() => {
+        const topo = p.topology_images ?? [];
+        // Les photos de topologie s'insèrent juste sous le titre « Topologie » du texte, s'il existe.
+        const m = p.content.match(/^#{2,3}[^\n]*topolog[^\n]*$/im);
+        const cut = m?.index !== undefined ? m.index + m[0].length : -1;
+        const before = cut >= 0 ? p.content.slice(0, cut) : p.content;
+        const after = cut >= 0 ? p.content.slice(cut) : "";
+        const photos = topo.length ? <Gallery images={topo} title={`${p.title} — topologie`} heading={cut >= 0 ? null : "Topologie"} className="my-6" /> : null;
+        if (!p.content.trim()) return photos ? <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">{photos}</div> : null;
+        return (
+          <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
+            {cut < 0 && photos}
+            <Markdown>{before}</Markdown>
+            {cut >= 0 && photos}
+            {after && <Markdown>{after}</Markdown>}
+          </div>
+        );
+      })()}
 
       <Gallery images={p.gallery ?? []} title={p.title} />
 

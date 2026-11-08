@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 /** Galerie de photos d'un projet, avec visionneuse plein écran (clavier, flèches, balayage). */
-export function Gallery({ images, title }: { images: string[]; title: string }) {
+export function Gallery({ images, title, heading = "Photos & captures", className = "pt-8" }: { images: string[]; title: string; heading?: string | null; className?: string }) {
   const [open, setOpen] = useState<number | null>(null);
   const n = images.length;
   const go = useCallback((d: number) => setOpen((i) => (i === null ? i : (i + d + n) % n)), [n]);
@@ -28,10 +28,12 @@ export function Gallery({ images, title }: { images: string[]; title: string }) 
   if (!n) return null;
 
   return (
-    <section className="pt-8">
-      <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-        <Images size={20} className="text-ultra-300" /> Photos & captures <span className="font-mono text-sm font-normal text-ultra-200/60">({n})</span>
-      </h2>
+    <section className={className}>
+      {heading !== null && (
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          <Images size={20} className="text-ultra-300" /> {heading} <span className="font-mono text-sm font-normal text-ultra-200/60">({n})</span>
+        </h2>
+      )}
       <div className={`grid gap-3 ${n === 1 ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"}`}>
         {images.map((src, i) => (
           <button

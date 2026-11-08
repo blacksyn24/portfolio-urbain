@@ -39,6 +39,7 @@ export type Project = {
   position: number;
   likes?: number;
   gallery?: string[];
+  topology_images?: string[];
 };
 
 export type TimelineItem = {
