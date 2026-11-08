@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { z } from "zod";
 import { getDocuments, getPosts, getSiteData } from "@/lib/data";
 import { serverClient } from "@/lib/supabase";
@@ -11,7 +11,8 @@ export const maxDuration = 60;
 
 const CLAUDE_MODEL = "claude-opus-5-5";
 // Gemini (prioritaire si GEMINI_API_KEY est défini). Repli sur un modèle stable si le premier échoue.
-const GEMINI_MODELS = Array.from(new Set([process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
+// 3.6 Flash d'abord (stable), 3.8 Flash en secours (souvent saturé sur l'offre gratuite).
+const GEMINI_MODELS = Array.from(new Set([process.env.GEMINI_MODEL || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-3.8-flash"]));
 const REFUSAL = "Je ne peux pas répondre à cette question. Utilisez le formulaire de contact pour écrire directement à Urbain.";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -21,14 +22,24 @@ async function* geminiStream(system: string, messages: Msg[]): AsyncGenerator<st
   // Peu de nouvelles tentatives par modèle : en cas de saturation, on passe vite au modèle suivant.
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: { timeout: 20_000, retryOptions: { attempts: 2, initialDelay: 0.6, maxDelay: 1.5 } },
+    httpOptions: { timeout: 15_000, retryOptions: { attempts: 1 } },
   });
   const contents = messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
   let lastError: unknown;
-  for (const model of GEMINI_MODELS) {
+  const attempts = GEMINI_MODELS.flatMap((model) => [
+    { model, thinking: true },
+    { model, thinking: false }, // au cas où le modèle refuse le réglage de réflexion
+  ]);
+  for (const { model, thinking } of attempts) {
     let started = false;
     try {
-      const response = await ai.models.generateContentStream({ model, contents, config: { systemInstruction: system, maxOutputTokens: 1024, temperature: 0.4 } });
+      const config = {
+        systemInstruction: system,
+        maxOutputTokens: 1024,
+        temperature: 0.4,
+        ...(thinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
+      };
+      const response = await ai.models.generateContentStream({ model, contents, config });
       for await (const chunk of response) {
         const text = chunk.text;
         if (text) {
@@ -40,8 +51,10 @@ async function* geminiStream(system: string, messages: Msg[]): AsyncGenerator<st
       return;
     } catch (e) {
       lastError = e;
-      console.error(`[chat] Gemini ${model} indisponible`, e);
+      const status = (e as { status?: number }).status;
+      console.error(`[chat] Gemini ${model}${thinking ? "" : " (sans réflexion)"} indisponible`, status ?? e);
       if (started) return; // réponse déjà partiellement envoyée : on n'enchaîne pas sur un autre modèle
+      if (thinking && status !== 400) attempts.splice(attempts.findIndex((a) => a.model === model && !a.thinking), 1); // inutile de réessayer ce modèle
     }
   }
   throw lastError;
