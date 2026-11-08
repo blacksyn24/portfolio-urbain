@@ -1,45 +1,31 @@
-import { ArrowRight, CalendarDays, FileText } from "lucide-react";
-import Link from "next/link";
+import { FileText } from "lucide-react";
 import type { Post } from "@/lib/types";
+import { PostCover } from "./Covers";
+import { MediaCard } from "./MediaCard";
 
 export const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 export const readingTime = (text: string) => Math.max(1, Math.round(text.split(/\s+/).length / 220));
 
 export function PostCard({ post }: { post: Post }) {
+  const cover = post.cover_url || post.pdf_preview_url || "";
   return (
-    <article className="glass group relative flex h-full flex-col overflow-hidden rounded-[2.25rem] p-2 transition-transform duration-500 [transition-timing-function:var(--spring)] hover:-translate-y-1">
-      {(post.cover_url || post.pdf_preview_url) && (
-        <div className={`relative h-44 overflow-hidden rounded-[1.85rem] ${post.cover_url ? "" : "bg-white"}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.cover_url || post.pdf_preview_url} alt="" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
-          {post.pdf_url && (
-            <span className="chip absolute left-3 top-3 !bg-ink-950/85 backdrop-blur-md">
-              <FileText size={13} /> PDF
-            </span>
-          )}
-        </div>
-      )}
-      <div className="flex flex-1 flex-col p-5">
-        <p className="flex items-center gap-1.5 font-mono text-xs text-ultra-300">
-          <CalendarDays size={13} /> {fmtDate(post.published_at)} · {post.content.trim() ? `${readingTime(post.content)} min` : "PDF"}
-        </p>
-        <h3 className="mt-2 text-lg font-semibold leading-snug">
-          <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0 after:content-['']">
-            {post.title}
-          </Link>
-        </h3>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-ultra-200/80">{post.excerpt}</p>
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-1.5">
-            {post.tags.slice(0, 3).map((t) => (
-              <span key={t} className="chip !text-[0.7rem]">
-                {t}
-              </span>
-            ))}
-          </div>
-          <ArrowRight size={17} className="shrink-0 text-ultra-300 transition-transform group-hover:translate-x-1" />
-        </div>
-      </div>
-    </article>
+    <MediaCard
+      images={cover ? [cover] : []}
+      fallback={<PostCover tag={post.tags[0]} />}
+      href={`/blog/${post.slug}`}
+      title={post.title}
+      subtitle={fmtDate(post.published_at)}
+      aside={<span className="text-ultra-200/80">{post.content.trim() ? `${readingTime(post.content)} min` : "PDF"}</span>}
+      description={post.excerpt}
+      highlight={post.tags.length ? <span className="font-mono text-sm tracking-wide text-ultra-200">{post.tags.slice(0, 3).join(" · ")}</span> : undefined}
+      badge={
+        post.pdf_url ? (
+          <span className="chip !bg-ink-950/80 backdrop-blur-md">
+            <FileText size={13} /> PDF
+          </span>
+        ) : undefined
+      }
+      cta={{ label: "Lire l'article", href: `/blog/${post.slug}` }}
+    />
   );
 }

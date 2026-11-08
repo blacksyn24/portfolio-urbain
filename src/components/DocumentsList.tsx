@@ -1,9 +1,9 @@
 "use client";
 
-import { Download, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
-import { track } from "@/lib/track";
 import { downloadUrl, fmtSize } from "@/lib/docs";
+import { DocCover } from "./Covers";
+import { MediaCard } from "./MediaCard";
 import type { DocumentItem } from "@/lib/types";
 
 const ext = (name: string) => name.split(".").pop()?.toUpperCase() ?? "FICHIER";
@@ -32,22 +32,20 @@ export function DocumentsList({ documents }: { documents: DocumentItem[] }) {
         )}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un document…" className="field !w-auto min-w-0 flex-1 !rounded-full" aria-label="Rechercher" />
       </div>
-      <ul className="grid gap-4 md:grid-cols-2">
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((d) => (
-          <li key={d.id} className="glass flex items-start gap-4 rounded-[1.8rem] p-5">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-ultra-500/60 to-ultra-700/60 shadow-[inset_0_1px_0_rgb(255_255_255/.35)]">
-              <FileText size={21} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold leading-snug">{d.title}</h3>
-              {d.description && <p className="mt-1 text-sm leading-relaxed text-ultra-200/75">{d.description}</p>}
-              <p className="mt-2 font-mono text-xs text-ultra-300">
-                {d.category} · {ext(d.file_name)} {fmtSize(d.file_size) && `· ${fmtSize(d.file_size)}`}
-              </p>
-            </div>
-            <a href={downloadUrl(d)} onClick={() => track("document_download", d.title)} className="btn btn-primary shrink-0 !px-3.5 !py-2.5" aria-label={`Télécharger ${d.title}`}>
-              <Download size={17} />
-            </a>
+          <li key={d.id}>
+            <MediaCard
+              images={[]}
+              fallback={<DocCover fileName={d.file_name} category={d.category} />}
+              href={downloadUrl(d)}
+              title={d.title}
+              subtitle={d.category}
+              aside={fmtSize(d.file_size) ? <span className="text-ultra-200/80">{fmtSize(d.file_size)}</span> : undefined}
+              description={d.description}
+              highlight={<span className="font-mono text-sm tracking-wide text-ultra-200">{ext(d.file_name)}</span>}
+              cta={{ label: "Télécharger", href: downloadUrl(d), download: true, event: "document_download", eventLabel: d.title }}
+            />
           </li>
         ))}
       </ul>

@@ -2,6 +2,7 @@ import { ArrowRight, Camera, Code2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { Project } from "@/lib/types";
 import { LikeButton } from "../LikeButton";
+import { MediaCard } from "../MediaCard";
 import { TrackedLink } from "../TrackedLink";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
@@ -74,69 +75,41 @@ export function ProjectLinks({ p }: { p: Project }) {
 }
 
 export function ProjectCard({ p }: { p: Project }) {
-  const cover = p.cover_url || p.gallery?.[0] || "";
-  const photos = p.gallery?.length ?? 0;
+  const images = Array.from(new Set([p.cover_url, ...(p.gallery ?? [])].filter(Boolean)));
+  const tool = p.tags.find((t) => t === "GNS3" || t === "Packet Tracer");
+  const techs = p.tags.filter((t) => t !== tool).slice(0, 3);
   return (
-    <article className="glass group relative isolate aspect-[4/5] overflow-hidden rounded-[2rem] p-0 transition-transform duration-500 [transition-timing-function:var(--spring)] hover:-translate-y-1">
-      {/* Image plein cadre */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-ultra-700/60 via-ink-900/80 to-ink-950">
-        {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
-        ) : (
-          <div className="h-full w-full p-10 pb-40 transition-transform duration-700 group-hover:scale-105">
-            <Topology kind={p.topology} />
-          </div>
-        )}
-      </div>
-      {/* Dégradé pour la lisibilité du texte */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-ink-950 via-ink-950/75 via-40% to-transparent to-70%" />
-
-      {/* Toute la carte mène au lab */}
-      <Link href={`/projets/${p.slug}`} aria-label={p.title} tabIndex={-1} className="absolute inset-0" />
-
-      {/* Haut : catégorie + j'aime */}
-      <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between [&>*]:pointer-events-auto">
-        <span className="flex flex-wrap gap-1.5">
-          <span className="chip !bg-ink-950/80 backdrop-blur-md">
-            {p.category} · {p.year}
-          </span>
-          {photos > 1 && (
-            <span className="chip !bg-ink-950/80 backdrop-blur-md" title={`${photos} photos`}>
-              <Camera size={13} /> {photos}
-            </span>
-          )}
-        </span>
-        <LikeButton slug={p.slug} initial={p.likes ?? 0} />
-      </div>
-
-      {/* Bas : titre, infos, bouton */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 [&_a]:pointer-events-auto">
-        <h3 className="line-clamp-2 px-1 text-lg font-semibold leading-snug text-white drop-shadow">{p.title}</h3>
-        <p className="mt-1 line-clamp-1 px-1 font-mono text-[0.7rem] uppercase tracking-wider text-ultra-200/85">{p.tags.slice(0, 3).join(" · ")}</p>
-        <div className="mt-2 flex items-center gap-3 px-1 text-xs text-ultra-200/70">
+    <MediaCard
+      images={images}
+      fallback={
+        <div className="h-full w-full p-8">
+          <Topology kind={p.topology} />
+        </div>
+      }
+      href={`/projets/${p.slug}`}
+      title={p.title}
+      subtitle={[p.category, p.year, tool].filter(Boolean).join(" · ")}
+      aside={images.length > 1 ? <span className="flex items-center gap-1 text-ultra-200/80" title={`${images.length} photos`}><Camera size={14} /> {images.length}</span> : undefined}
+      description={p.summary}
+      links={
+        <>
           {p.repo_url && (
-            <TrackedLink event="project_click" label={`${p.slug}:code`} href={p.repo_url} target="_blank" rel="noopener" className="relative z-20 inline-flex items-center gap-1 hover:text-white">
+            <TrackedLink event="project_click" label={`${p.slug}:code`} href={p.repo_url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 hover:text-white">
               <Code2 size={13} /> Code GitHub
             </TrackedLink>
           )}
           {p.demo_url && (
-            <TrackedLink event="project_click" label={`${p.slug}:demo`} href={p.demo_url} target="_blank" rel="noopener" className="relative z-20 inline-flex items-center gap-1 hover:text-white">
+            <TrackedLink event="project_click" label={`${p.slug}:demo`} href={p.demo_url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 hover:text-white">
               <ExternalLink size={13} /> Démo
             </TrackedLink>
           )}
-        </div>
-        <Link
-          href={`/projets/${p.slug}`}
-          className="glass glass-dark mt-3 flex h-12 items-center justify-between rounded-full pl-6 pr-1.5 text-sm font-semibold text-white"
-        >
-          <span className="flex-1 text-center">Voir le lab</span>
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-white text-ink-950 transition-transform group-hover:translate-x-0.5">
-            <ArrowRight size={17} />
-          </span>
-        </Link>
-      </div>
-    </article>
+        </>
+      }
+      highlight={techs.length ? <span className="font-mono text-sm tracking-wide text-ultra-200">{techs.join(" · ")}</span> : undefined}
+      badge={<span className="chip !bg-ink-950/80 backdrop-blur-md">{p.category}</span>}
+      corner={<LikeButton slug={p.slug} initial={p.likes ?? 0} />}
+      cta={{ label: "Voir le lab", href: `/projets/${p.slug}` }}
+    />
   );
 }
 
@@ -152,7 +125,7 @@ export function FeaturedProjects({ projects }: { projects: Project[] }) {
           Tous les projets <ArrowRight size={17} />
         </Link>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {list.map((p, i) => (
           <Reveal key={p.slug} delay={(i % 2) * 0.07}>
             <ProjectCard p={p} />
