@@ -22,7 +22,7 @@ export default async function ProjetsPage() {
             title: p.title,
             meta: `${p.category} · ${p.year} · ${p.tags.slice(0, 3).join(" · ")}`,
             description: p.summary,
-            image: p.cover_url || undefined,
+            image: p.cover_url || p.gallery?.[0] || undefined,
             cover: (
               <div className="h-full w-full p-8">
                 <Topology kind={p.topology} />

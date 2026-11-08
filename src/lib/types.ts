@@ -38,6 +38,7 @@ export type Project = {
   published: boolean;
   position: number;
   likes?: number;
+  gallery?: string[];
 };
 
 export type TimelineItem = {

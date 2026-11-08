@@ -13,6 +13,7 @@ export type Field =
   | { name: string; label: string; type: "select"; options: { value: string; label: string }[] }
   | { name: string; label: string; type: "bool" }
   | { name: string; label: string; type: "image"; folder: string }
+  | { name: string; label: string; type: "gallery"; folder: string; coverField?: string }
   | { name: string; label: string; type: "markdown"; help?: string }
   | { name: string; label: string; type: "datetime" }
   | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number };
@@ -182,6 +183,7 @@ export function Crud({ table, title, intro, itemLabel, fields, primary, secondar
                     value={editing[f.name]}
                     onChange={(v) => setEditing((e) => ({ ...e, [f.name]: v }))}
                     patch={(o) => setEditing((e) => ({ ...e, ...o }))}
+                    record={editing}
                     upload={upload}
                   />
                 ))}
@@ -222,12 +224,14 @@ export function FieldInput({
   value,
   onChange,
   patch,
+  record,
   upload,
 }: {
   field: Field;
   value: unknown;
   onChange: (v: unknown) => void;
   patch?: (o: Record<string, unknown>) => void;
+  record?: Record<string, unknown>;
   upload: (file: File, folder: string) => Promise<string>;
 }) {
   const { notify } = useIsland();
@@ -274,6 +278,92 @@ export function FieldInput({
         {f.help && <span className="mt-1 block text-xs text-ultra-200/50">{f.help}</span>}
       </label>
     );
+  if (f.type === "gallery") {
+    const list = (value as string[]) ?? [];
+    const cover = f.coverField ? String(record?.[f.coverField] ?? "") : "";
+    const move = (i: number, d: number) => {
+      const next = [...list];
+      const [x] = next.splice(i, 1);
+      next.splice(i + d, 0, x);
+      onChange(next);
+    };
+    return (
+      <div>
+        {label}
+        {list.length > 0 && (
+          <ul className="mb-3 grid grid-cols-3 gap-2">
+            {list.map((src, i) => (
+              <li key={src} className="group relative overflow-hidden rounded-xl bg-white/5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+                {cover === src && <span className="absolute left-1 top-1 rounded-full bg-ultra-500 px-2 py-0.5 text-[0.6rem] font-semibold">Couverture</span>}
+                <div className="absolute inset-x-1 bottom-1 flex justify-between gap-1">
+                  <span className="flex gap-1">
+                    <button type="button" disabled={i === 0} onClick={() => move(i, -1)} className="grid h-7 w-7 place-items-center rounded-full bg-ink-950/80 text-xs disabled:opacity-30" aria-label="Avant">
+                      ←
+                    </button>
+                    <button type="button" disabled={i === list.length - 1} onClick={() => move(i, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-ink-950/80 text-xs disabled:opacity-30" aria-label="Après">
+                      →
+                    </button>
+                  </span>
+                  <span className="flex gap-1">
+                    {f.coverField && cover !== src && (
+                      <button type="button" onClick={() => patch?.({ [f.coverField!]: src })} className="h-7 rounded-full bg-ink-950/80 px-2 text-[0.6rem]" title="Utiliser comme couverture de la carte">
+                        ★ Couv.
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onChange(list.filter((x) => x !== src));
+                        if (f.coverField && cover === src) patch?.({ [f.coverField]: "" });
+                      }}
+                      className="grid h-7 w-7 place-items-center rounded-full bg-red-500/85 text-xs"
+                      aria-label="Retirer la photo"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <label className="btn btn-glass cursor-pointer !py-2 text-sm">
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />} Ajouter des photos
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={async (e) => {
+              const files = [...(e.target.files ?? [])];
+              e.target.value = "";
+              if (!files.length) return;
+              const tooBig = files.filter((x) => x.size > 8 * 1024 * 1024);
+              if (tooBig.length) notify({ title: `${tooBig.length} photo(s) trop lourde(s)`, subtitle: "8 Mo maximum par photo", tone: "error" });
+              setBusy(true);
+              const added: string[] = [];
+              for (const file of files.filter((x) => x.size <= 8 * 1024 * 1024)) {
+                try {
+                  added.push(await upload(file, f.folder));
+                } catch (err) {
+                  notify({ title: "Envoi impossible", subtitle: `${file.name} : ${err instanceof Error ? err.message : ""}`, tone: "error" });
+                }
+              }
+              setBusy(false);
+              if (added.length) {
+                onChange([...list, ...added]);
+                if (f.coverField && !cover) patch?.({ [f.coverField]: added[0] });
+                notify({ title: `${added.length} photo(s) ajoutée(s)`, subtitle: "Pensez à enregistrer", tone: "success" });
+              }
+            }}
+          />
+        </label>
+        <span className="mt-1 block text-xs text-ultra-200/50">Plusieurs photos possibles d&apos;un coup (8 Mo max chacune). La photo « Couverture » s&apos;affiche sur la carte du projet.</span>
+      </div>
+    );
+  }
   if (f.type === "datetime") {
     const v = value ? new Date(String(value)) : new Date();
     const local = new Date(v.getTime() - v.getTimezoneOffset() * 60000).toISOString().slice(0, 16);

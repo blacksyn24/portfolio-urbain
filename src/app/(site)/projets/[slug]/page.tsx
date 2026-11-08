@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Gallery } from "@/components/Gallery";
 import { Markdown } from "@/components/Markdown";
 import { Reveal } from "@/components/Reveal";
 import { ProjectCard, ProjectCover, ProjectLinks } from "@/components/sections/Projects";
@@ -51,6 +52,8 @@ export default async function ProjetPage({ params }: Props) {
           <Markdown>{p.content}</Markdown>
         </div>
       ) : null}
+
+      <Gallery images={p.gallery ?? []} title={p.title} />
 
       {others.length > 0 && (
         <section className="pt-20">

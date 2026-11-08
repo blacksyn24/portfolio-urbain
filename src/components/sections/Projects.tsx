@@ -1,4 +1,4 @@
-import { ArrowRight, Code2, ExternalLink } from "lucide-react";
+import { ArrowRight, Camera, Code2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { Project } from "@/lib/types";
 import { LikeButton } from "../LikeButton";
@@ -39,9 +39,9 @@ export function Topology({ kind }: { kind: Project["topology"] }) {
 export function ProjectCover({ p, className = "h-44" }: { p: Project; className?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-[1.85rem] bg-gradient-to-br from-ultra-700/50 via-ink-900/60 to-ink-950/80 ${className}`}>
-      {p.cover_url ? (
+      {p.cover_url || p.gallery?.[0] ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={p.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <img src={p.cover_url || p.gallery?.[0]} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
       ) : (
         <div className="absolute inset-0 p-6 transition-transform duration-700 group-hover:scale-105">
           <Topology kind={p.topology} />
@@ -74,13 +74,15 @@ export function ProjectLinks({ p }: { p: Project }) {
 }
 
 export function ProjectCard({ p }: { p: Project }) {
+  const cover = p.cover_url || p.gallery?.[0] || "";
+  const photos = p.gallery?.length ?? 0;
   return (
     <article className="glass group relative isolate aspect-[4/5] overflow-hidden rounded-[2rem] p-0 transition-transform duration-500 [transition-timing-function:var(--spring)] hover:-translate-y-1">
       {/* Image plein cadre */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-ultra-700/60 via-ink-900/80 to-ink-950">
-        {p.cover_url ? (
+        {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.cover_url} alt="" loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+          <img src={cover} alt="" loading="lazy" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
         ) : (
           <div className="h-full w-full p-10 pb-40 transition-transform duration-700 group-hover:scale-105">
             <Topology kind={p.topology} />
@@ -95,8 +97,15 @@ export function ProjectCard({ p }: { p: Project }) {
 
       {/* Haut : catégorie + j'aime */}
       <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between [&>*]:pointer-events-auto">
-        <span className="chip !bg-ink-950/80 backdrop-blur-md">
-          {p.category} · {p.year}
+        <span className="flex flex-wrap gap-1.5">
+          <span className="chip !bg-ink-950/80 backdrop-blur-md">
+            {p.category} · {p.year}
+          </span>
+          {photos > 1 && (
+            <span className="chip !bg-ink-950/80 backdrop-blur-md" title={`${photos} photos`}>
+              <Camera size={13} /> {photos}
+            </span>
+          )}
         </span>
         <LikeButton slug={p.slug} initial={p.likes ?? 0} />
       </div>
