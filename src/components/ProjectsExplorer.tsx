@@ -15,11 +15,19 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
   }, [projects]);
   const [cat, setCat] = useState("Tous");
   const [tag, setTag] = useState<string | null>(null);
+  const [q, setQ] = useState("");
 
-  const list = projects.filter((p) => (cat === "Tous" || p.category === cat) && (!tag || p.tags.includes(tag)));
+  const needle = q.trim().toLowerCase();
+  const list = projects.filter(
+    (p) => (cat === "Tous" || p.category === cat) && (!tag || p.tags.includes(tag)) && (!needle || `${p.title} ${p.summary} ${p.tags.join(" ")}`.toLowerCase().includes(needle))
+  );
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-10">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un lab : VLAN, PPP, AfriBank…" className="field !w-auto min-w-0 flex-1 !rounded-full" aria-label="Rechercher un projet" />
+        <span className="font-mono text-sm text-ultra-200/70">{list.length} projet{list.length > 1 ? "s" : ""}</span>
+      </div>
       <div className="mb-8 flex flex-wrap items-center gap-2">
         <div className="glass flex rounded-full p-1">
           {categories.map((c) => (

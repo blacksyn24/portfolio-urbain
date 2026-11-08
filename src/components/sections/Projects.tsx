@@ -47,8 +47,8 @@ export function ProjectCover({ p, className = "h-44" }: { p: Project; className?
         </div>
       )}
       <div className="absolute left-3 top-3 flex gap-2">
-        <span className="chip glass-dark">{p.category}</span>
-        <span className="chip glass-dark font-mono">{p.year}</span>
+        <span className="chip !bg-ink-950/85 backdrop-blur-md">{p.category}</span>
+        <span className="chip !bg-ink-950/85 font-mono backdrop-blur-md">{p.year}</span>
       </div>
     </div>
   );

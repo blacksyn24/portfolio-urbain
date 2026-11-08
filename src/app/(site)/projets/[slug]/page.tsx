@@ -47,9 +47,9 @@ export default async function ProjetPage({ params }: Props) {
         <ProjectCover p={p} className="h-64 sm:h-96" />
       </Reveal>
       {p.content ? (
-        <Reveal delay={0.1} className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
+        <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
           <Markdown>{p.content}</Markdown>
-        </Reveal>
+        </div>
       ) : null}
 
       {others.length > 0 && (

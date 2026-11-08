@@ -22,7 +22,7 @@ export default function RessourcesAdmin() {
           name: "category",
           label: "Catégorie",
           type: "select",
-          options: ["Réseaux", "Cisco", "Cybersécurité", "Linux", "Rapports de labs", "Cours", "Autre"].map((c) => ({ value: c, label: c })),
+          options: ["Réseaux", "Cisco", "Cybersécurité", "Linux", "Fichiers de labs", "Rapports de labs", "Cours", "Autre"].map((c) => ({ value: c, label: c })),
         },
         { name: "published", label: "Visible sur le site", type: "bool" },
       ]}

@@ -48,9 +48,9 @@ export default async function ArticlePage({ params }: Props) {
           <img src={post.cover_url} alt="" className="max-h-[440px] w-full rounded-[2rem] object-cover" />
         </Reveal>
       )}
-      <Reveal delay={0.08} className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
+      <div className="glass mt-6 rounded-[2.4rem] p-6 sm:p-10">
         <Markdown>{post.content}</Markdown>
-      </Reveal>
+      </div>
       {others.length > 0 && (
         <section className="pt-20">
           <h2 className="mb-6 text-2xl font-semibold">À lire aussi</h2>
