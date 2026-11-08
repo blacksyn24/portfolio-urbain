@@ -52,6 +52,8 @@ export function DynamicIsland({ photo, cvUrl, name }: { photo: string; cvUrl: st
     if (window.matchMedia("(hover: hover)").matches) setOpen(true);
   };
   const leave = () => {
+    // Sur écran tactile, pas de fermeture au « survol » : on ferme avec le bouton ou en naviguant.
+    if (!window.matchMedia("(hover: hover)").matches) return;
     hoverTimer.current = setTimeout(() => setOpen(false), 220);
   };
 
