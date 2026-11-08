@@ -21,9 +21,9 @@ export default async function HomePage() {
     <>
       <Hero settings={s} badge={currentCert ? { title: currentCert.name, year: currentCert.year } : undefined} />
 
-      <section className="mx-auto grid max-w-6xl gap-4 px-4 pt-5 sm:grid-cols-3">
+      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 pt-5 sm:grid-cols-3">
         {shortcuts.map((c, i) => (
-          <Reveal key={c.href} delay={i * 0.05}>
+          <Reveal key={c.href} delay={i * 0.05} className="min-w-0">
             <Link href={c.href} className="glass group flex h-full items-center gap-4 rounded-[1.8rem] p-5 transition-transform hover:-translate-y-0.5">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-ultra-500/60">
                 <c.icon size={19} />
