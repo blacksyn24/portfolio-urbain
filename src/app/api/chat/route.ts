@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { getDocuments, getPosts, getSiteData } from "@/lib/data";
 import { serverClient } from "@/lib/supabase";
@@ -8,7 +9,58 @@ import { rateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MODEL = "claude-opus-5-5";
+const CLAUDE_MODEL = "claude-opus-5-5";
+// Gemini (prioritaire si GEMINI_API_KEY est défini). Repli sur un modèle stable si le premier échoue.
+const GEMINI_MODELS = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-2.5-flash"];
+const REFUSAL = "Je ne peux pas répondre à cette question. Utilisez le formulaire de contact pour écrire directement à Urbain.";
+
+type Msg = { role: "user" | "assistant"; content: string };
+
+/** Réponse en flux via Gemini (Google). */
+async function* geminiStream(system: string, messages: Msg[]): AsyncGenerator<string> {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const contents = messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+  let lastError: unknown;
+  for (const model of GEMINI_MODELS) {
+    let started = false;
+    try {
+      const response = await ai.models.generateContentStream({ model, contents, config: { systemInstruction: system, maxOutputTokens: 1024, temperature: 0.4 } });
+      for await (const chunk of response) {
+        const text = chunk.text;
+        if (text) {
+          started = true;
+          yield text;
+        }
+      }
+      if (!started) yield REFUSAL;
+      return;
+    } catch (e) {
+      lastError = e;
+      console.error(`[chat] Gemini ${model} indisponible`, e);
+      if (started) return; // réponse déjà partiellement envoyée : on n'enchaîne pas sur un autre modèle
+    }
+  }
+  throw lastError;
+}
+
+/** Réponse en flux via Claude (Anthropic), si une clé Anthropic est configurée à la place. */
+async function* claudeStream(system: string, messages: Msg[]): AsyncGenerator<string> {
+  const client = new Anthropic();
+  const stream = client.beta.messages.stream({
+    model: CLAUDE_MODEL,
+    max_tokens: 2048,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    output_config: { effort: "low" },
+    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+    messages,
+  } as Parameters<typeof client.beta.messages.stream>[0]);
+  for await (const event of stream) {
+    if (event.type === "content_block_delta" && event.delta.type === "text_delta") yield event.delta.text;
+  }
+  const final = await stream.finalMessage();
+  if (final.stop_reason === "refusal") yield REFUSAL;
+}
 
 const body = z.object({
   conversationId: z.string().uuid(),
@@ -57,7 +109,7 @@ function buildSystemPrompt(d: SiteData, extra: { posts: { title: string; slug: s
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
     return Response.json({ message: "Le chatbot n'est pas encore activé." }, { status: 503 });
   }
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
@@ -77,36 +129,19 @@ export async function POST(req: Request) {
     return Response.json({ message: "Le chatbot est désactivé pour le moment." }, { status: 503 });
   }
 
-  const client = new Anthropic();
   const db = serverClient();
   const userMessage = messages.at(-1)!.content;
-
-  const stream = client.beta.messages.stream({
-    model: MODEL,
-    max_tokens: 2048,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low" },
-    system: [{ type: "text", text: buildSystemPrompt(data, { posts, docs }), cache_control: { type: "ephemeral" } }],
-    messages,
-  } as Parameters<typeof client.beta.messages.stream>[0]);
+  const system = buildSystemPrompt(data, { posts, docs });
+  const textStream = process.env.GEMINI_API_KEY ? geminiStream(system, messages) : claudeStream(system, messages);
 
   const encoder = new TextEncoder();
   const readable = new ReadableStream<Uint8Array>({
     async start(controller) {
       let answer = "";
       try {
-        for await (const event of stream) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            answer += event.delta.text;
-            controller.enqueue(encoder.encode(event.delta.text));
-          }
-        }
-        const final = await stream.finalMessage();
-        if (final.stop_reason === "refusal") {
-          const msg = "Je ne peux pas répondre à cette question. Utilisez le formulaire de contact pour écrire directement à Urbain.";
-          answer = msg;
-          controller.enqueue(encoder.encode(msg));
+        for await (const text of textStream) {
+          answer += text;
+          controller.enqueue(encoder.encode(text));
         }
       } catch (e) {
         console.error("[chat]", e);

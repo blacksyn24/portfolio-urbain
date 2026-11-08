@@ -58,6 +58,7 @@ export type Certification = {
   year: string;
   status: "obtenue" | "en-cours" | "planifiee";
   credential_url: string;
+  badge_url: string;
   position: number;
   published: boolean;
 };

@@ -40,9 +40,14 @@ export function Journey({ timeline, certifications, headless }: { timeline: Time
           {certifications.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06} className="glass rounded-[2rem] p-6">
               <div className="flex items-start justify-between gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-b from-ultra-300/50 to-ultra-700/50 shadow-[inset_0_1px_0_rgb(255_255_255/.4)]">
-                  <Award size={22} />
-                </span>
+                {c.badge_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.badge_url} alt={`Badge ${c.name}`} className="h-20 w-20 rounded-2xl object-contain" />
+                ) : (
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-b from-ultra-300/50 to-ultra-700/50 shadow-[inset_0_1px_0_rgb(255_255_255/.4)]">
+                    <Award size={22} />
+                  </span>
+                )}
                 {c.status === "obtenue" ? (
                   <span className="chip !bg-ok/15 !text-ok">
                     <BadgeCheck size={14} /> Badge vérifié

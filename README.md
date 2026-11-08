@@ -4,7 +4,7 @@ Portfolio Liquid Glass + Dynamic Island, avec dashboard d'administration complet
 
 - **Site** : Next.js 15 (App Router), Tailwind CSS 4, Framer Motion
 - **Données, connexion, fichiers** : Supabase (projet `portfolio-urbain`, région Paris)
-- **Chatbot** : API Claude (Anthropic)
+- **Chatbot** : Google Gemini (ou Claude en option)
 - **Hébergement** : Vercel
 
 ## Pages
@@ -17,7 +17,9 @@ Portfolio Liquid Glass + Dynamic Island, avec dashboard d'administration complet
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | oui | URL du projet Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | oui | Clé publique Supabase (publishable) |
-| `ANTHROPIC_API_KEY` | pour le chatbot | Clé API Anthropic (secrète) |
+| `GEMINI_API_KEY` | pour le chatbot | Clé API Google Gemini (secrète, offre gratuite sur aistudio.google.com) |
+| `GEMINI_MODEL` | non | Modèle Gemini (défaut : `gemini-3.8-flash`, repli `gemini-2.5-flash`) |
+| `ANTHROPIC_API_KEY` | non | Alternative : chatbot Claude si aucune clé Gemini |
 | `RESEND_API_KEY` | non | Envoi d'un email à chaque nouveau message |
 | `CONTACT_NOTIFY_EMAIL` | non | Adresse qui reçoit ces emails |
 
