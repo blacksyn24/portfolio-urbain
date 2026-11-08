@@ -3,13 +3,11 @@
 import { Download, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 import { track } from "@/lib/track";
+import { downloadUrl, fmtSize } from "@/lib/docs";
 import type { DocumentItem } from "@/lib/types";
 
-export const fmtSize = (b: number) => (b > 1048576 ? `${(b / 1048576).toFixed(1)} Mo` : b > 0 ? `${Math.max(1, Math.round(b / 1024))} Ko` : "");
 const ext = (name: string) => name.split(".").pop()?.toUpperCase() ?? "FICHIER";
 
-/** Lien qui force le téléchargement (paramètre Supabase ?download=). */
-export const downloadUrl = (d: DocumentItem) => (d.file_url.includes("/storage/v1/object/public/") ? `${d.file_url}?download=${encodeURIComponent(d.file_name || "document")}` : d.file_url);
 
 export function DocumentsList({ documents }: { documents: DocumentItem[] }) {
   const cats = useMemo(() => ["Tous", ...Array.from(new Set(documents.map((d) => d.category)))], [documents]);

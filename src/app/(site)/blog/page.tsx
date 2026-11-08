@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { PostCover } from "@/components/Covers";
+import { GlassCarousel } from "@/components/GlassCarousel";
 import { PageHeader } from "@/components/PageHeader";
-import { PostCard } from "@/components/PostCard";
+import { fmtDate, PostCard, readingTime } from "@/components/PostCard";
 import { Reveal } from "@/components/Reveal";
+import { SectionTitle } from "@/components/SectionTitle";
 import { getPosts } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Blog" };
@@ -11,7 +14,23 @@ export default async function BlogPage() {
   return (
     <>
       <PageHeader eyebrow="// blog" title="Blog" intro="Writeups de labs, retours d'expérience CCNA, notes de cybersécurité." />
+      {posts.length > 1 && (
+        <GlassCarousel
+          label="Derniers articles"
+          items={posts.slice(0, 7).map((p) => ({
+            key: p.slug,
+            title: p.title,
+            meta: `${fmtDate(p.published_at)} · ${readingTime(p.content)} min`,
+            description: p.excerpt,
+            image: p.cover_url || undefined,
+            cover: <PostCover tag={p.tags[0]} />,
+            thumbText: "📝",
+            href: `/blog/${p.slug}`,
+          }))}
+        />
+      )}
       <section className="mx-auto max-w-6xl px-4 pt-10">
+        {posts.length > 1 && <div className="pt-10"><SectionTitle eyebrow="// tous les articles" title={`${posts.length} articles`} /></div>}
         {posts.length === 0 ? (
           <p className="glass rounded-[2rem] p-10 text-center text-ultra-200/70">Les premiers articles arrivent bientôt.</p>
         ) : (

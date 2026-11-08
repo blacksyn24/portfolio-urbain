@@ -6,7 +6,7 @@ import type { Project } from "@/lib/types";
 import { ProjectCard } from "./sections/Projects";
 
 /** Grille de projets avec filtres par catégorie et par technologie. */
-export function ProjectsExplorer({ projects }: { projects: Project[] }) {
+export function ProjectsExplorer({ projects, compact }: { projects: Project[]; compact?: boolean }) {
   const categories = useMemo(() => ["Tous", ...Array.from(new Set(projects.map((p) => p.category)))], [projects]);
   const tags = useMemo(() => {
     const count = new Map<string, number>();
@@ -23,7 +23,7 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
   );
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-10">
+    <section className={`mx-auto max-w-6xl px-4 ${compact ? "pt-0" : "pt-10"}`}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un lab : VLAN, PPP, AfriBank…" className="field !w-auto min-w-0 flex-1 !rounded-full" aria-label="Rechercher un projet" />
         <span className="font-mono text-sm text-ultra-200/70">{list.length} projet{list.length > 1 ? "s" : ""}</span>
