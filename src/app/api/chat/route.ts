@@ -11,14 +11,18 @@ export const maxDuration = 60;
 
 const CLAUDE_MODEL = "claude-opus-5-5";
 // Gemini (prioritaire si GEMINI_API_KEY est défini). Repli sur un modèle stable si le premier échoue.
-const GEMINI_MODELS = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-2.5-flash"];
+const GEMINI_MODELS = Array.from(new Set([process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
 const REFUSAL = "Je ne peux pas répondre à cette question. Utilisez le formulaire de contact pour écrire directement à Urbain.";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 /** Réponse en flux via Gemini (Google). */
 async function* geminiStream(system: string, messages: Msg[]): AsyncGenerator<string> {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  // Peu de nouvelles tentatives par modèle : en cas de saturation, on passe vite au modèle suivant.
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    httpOptions: { timeout: 20_000, retryOptions: { attempts: 2, initialDelay: 0.6, maxDelay: 1.5 } },
+  });
   const contents = messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
   let lastError: unknown;
   for (const model of GEMINI_MODELS) {
