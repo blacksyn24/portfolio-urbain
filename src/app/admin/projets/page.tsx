@@ -13,7 +13,7 @@ export default function ProjetsAdmin() {
       intro="Ajoutez vos labs avec captures, liens de démo et de code."
       itemLabel="Projet"
       primary={(r) => String(r.title)}
-      secondary={(r) => `${r.category} · ${r.year} · ${(r.tags as string[]).join(", ")}`}
+      secondary={(r) => `${r.category} · ${r.year} · ♥ ${r.likes ?? 0} · ${(r.tags as string[]).join(", ")}`}
       defaults={{ title: "", summary: "", content: "", tags: [], category: "Lab", year: String(new Date().getFullYear()), topology: "core", cover_url: "", demo_url: "", repo_url: "", featured: false, published: true }}
       beforeSave={(v) => ({ ...v, slug: v.slug || slugify(String(v.title)) })}
       fields={[

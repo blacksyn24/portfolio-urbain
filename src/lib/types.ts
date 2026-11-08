@@ -37,6 +37,7 @@ export type Project = {
   featured: boolean;
   published: boolean;
   position: number;
+  likes?: number;
 };
 
 export type TimelineItem = {
