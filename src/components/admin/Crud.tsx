@@ -17,6 +17,7 @@ export type Field =
   | { name: string; label: string; type: "pdf"; folder: string; nameField: string; sizeField: string; previewField: string }
   | { name: string; label: string; type: "markdown"; help?: string }
   | { name: string; label: string; type: "datetime" }
+  | { name: string; label: string; type: "date" }
   | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number };
 
 type Row = Record<string, unknown> & { id: string; position: number; published: boolean };
@@ -438,6 +439,14 @@ export function FieldInput({
       <label className="block">
         {label}
         <input type="datetime-local" value={local} onChange={(e) => onChange(new Date(e.target.value).toISOString())} className="field" />
+      </label>
+    );
+  }
+  if (f.type === "date") {
+    return (
+      <label className="block">
+        {label}
+        <input type="date" value={value ? String(value).slice(0, 10) : ""} onChange={(e) => onChange(e.target.value || null)} className="field" />
       </label>
     );
   }

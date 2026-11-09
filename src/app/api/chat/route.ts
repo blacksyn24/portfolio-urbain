@@ -116,7 +116,11 @@ function buildSystemPrompt(d: SiteData, extra: { posts: { title: string; slug: s
     ...d.timeline.map((t) => `- ${t.period} : ${t.title} — ${t.place}${t.detail ? `. ${t.detail}` : ""}`),
     "",
     "## Certifications",
-    ...d.certifications.map((c) => `- ${c.name} (${c.issuer}, ${c.year}) : ${c.status === "obtenue" ? "obtenue" : c.status === "en-cours" ? "en cours" : "planifiée"}`),
+    ...d.certifications.map(
+      (c) =>
+        `- ${c.name} (${c.issuer}${c.academy ? `, via ${c.academy}` : ""}, ${c.issued_on ?? c.year}) : ${c.status === "obtenue" ? "obtenue" : c.status === "en-cours" ? "en cours" : "planifiée"}${c.badge_url ? ", badge vérifiable sur Credly" : ""}${c.skills?.length ? `. Compétences : ${c.skills.join(", ")}` : ""}`
+    ),
+    "Page des certificats et badges : /certifications",
   ];
   if (extra.posts.length) lines.push("", "## Articles du blog (page /blog)", ...extra.posts.map((p) => `- ${p.title} (/blog/${p.slug}) : ${p.excerpt}`));
   if (extra.docs.length) lines.push("", "## Documents téléchargeables (page /ressources)", ...extra.docs.map((x) => `- ${x.title} (${x.category})`));

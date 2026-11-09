@@ -31,7 +31,7 @@ const fb: SiteData = {
     id: p.slug, ...p, content: "", cover_url: "", demo_url: "", repo_url: "", featured: i < 3, published: true, position: i,
   })),
   timeline: fallback.timeline.map((t, i) => ({ id: String(i), ...t, position: i, published: true })),
-  certifications: fallback.certifications.map((c, i) => ({ id: String(i), ...c, credential_url: "", badge_url: "", position: i, published: true })),
+  certifications: fallback.certifications.map((c, i) => ({ id: String(i), ...c, credential_url: "", badge_url: "", issued_on: null, academy: "", credential_id: "", description: "", skills: [], certificate_url: "", certificate_name: "", certificate_size: 0, certificate_preview_url: "", position: i, published: true })),
 };
 
 async function read<T>(label: string, run: () => PromiseLike<{ data: unknown; error: unknown }>, fallbackValue: T): Promise<T> {

@@ -62,6 +62,17 @@ export type Certification = {
   status: "obtenue" | "en-cours" | "planifiee";
   credential_url: string;
   badge_url: string;
+  /** Date d'obtention (AAAA-MM-JJ) */
+  issued_on: string | null;
+  /** Établissement qui a dispensé la formation */
+  academy: string;
+  credential_id: string;
+  description: string;
+  skills: string[];
+  certificate_url: string;
+  certificate_name: string;
+  certificate_size: number;
+  certificate_preview_url: string;
   position: number;
   published: boolean;
 };

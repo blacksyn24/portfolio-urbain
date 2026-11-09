@@ -10,7 +10,7 @@ import { TrackedLink } from "../TrackedLink";
  * Accueil « affiche » : portrait mis en lumière à gauche, présentation à droite.
  * Mise en page inspirée d'un modèle choisi par Urbain, aux couleurs du site.
  */
-export function Hero({ settings: profile, badge }: { settings: Settings; badge?: { title: string; year: string } }) {
+export function Hero({ settings: profile, badge }: { settings: Settings; badge?: { title: string; year: string; label?: string } }) {
   const firstName = profile.first_name.split(" ")[0];
 
   return (
@@ -49,7 +49,7 @@ export function Hero({ settings: profile, badge }: { settings: Settings; badge?:
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ultra-300" />
                 </span>
                 <span className="truncate text-xs text-ultra-50">
-                  <span className="text-ultra-200/70">En cours · </span>
+                  <span className="text-ultra-200/70">{badge.label ?? "En cours"} · </span>
                   {badge.title}
                 </span>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "framer-motion";
-import { Check, Clock, Download, FileDown, FolderGit2, Home, Info, Mail, PenLine, User, X } from "lucide-react";
+import { Award, Check, Clock, Download, FileDown, FolderGit2, Home, Info, Mail, PenLine, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +10,7 @@ import { navItems, navLabel } from "@/content/profile";
 import { track } from "@/lib/track";
 import { useIsland } from "./IslandProvider";
 
-const icons = { home: Home, user: User, folder: FolderGit2, clock: Clock, pen: PenLine, download: FileDown, mail: Mail } as const;
+const icons = { award: Award, home: Home, user: User, folder: FolderGit2, clock: Clock, pen: PenLine, download: FileDown, mail: Mail } as const;
 const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.9 } as const;
 const fade = {
   initial: { opacity: 0, filter: "blur(6px)", scale: 0.96 },

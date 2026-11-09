@@ -17,6 +17,7 @@ const eventLabel: Record<string, string> = {
   chat_open: "Ouvertures du chatbot",
   social_click: "Clics réseaux sociaux",
   document_download: "Documents téléchargés",
+  credential_click: "Certificats & badges consultés",
 };
 
 export default function StatsPage() {

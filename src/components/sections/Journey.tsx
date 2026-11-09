@@ -1,4 +1,6 @@
-import { Award, BadgeCheck, Briefcase, GraduationCap, Hourglass, Trophy, Wrench } from "lucide-react";
+import { ArrowRight, Award, BadgeCheck, Briefcase, GraduationCap, Hourglass, Trophy, Wrench } from "lucide-react";
+import Link from "next/link";
+import { certDate } from "../Credentials";
 import type { Certification, TimelineItem } from "@/lib/types";
 import { Reveal } from "../Reveal";
 import { SectionTitle } from "../SectionTitle";
@@ -36,39 +38,42 @@ export function Journey({ timeline, certifications, headless }: { timeline: Time
           </ol>
         </Reveal>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {certifications.map((c, i) => (
-            <Reveal key={c.name} delay={i * 0.06} className="glass rounded-[2rem] p-6">
-              <div className="flex items-start justify-between gap-3">
+            <Reveal key={c.id} delay={i * 0.06}>
+              <Link href="/certifications" className="glass group flex items-center gap-4 rounded-[1.8rem] p-4 transition-transform hover:-translate-y-0.5">
                 {c.badge_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.badge_url} alt={`Badge ${c.name}`} className="h-20 w-20 rounded-2xl object-contain" />
+                  <img src={c.badge_url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-contain" />
                 ) : (
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-b from-ultra-300/50 to-ultra-700/50 shadow-[inset_0_1px_0_rgb(255_255_255/.4)]">
-                    <Award size={22} />
+                  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-ultra-300/50 to-ultra-700/50 shadow-[inset_0_1px_0_rgb(255_255_255/.4)]">
+                    <Award size={24} />
                   </span>
                 )}
-                {c.status === "obtenue" ? (
-                  <span className="chip !bg-ok/15 !text-ok">
-                    <BadgeCheck size={14} /> Badge vérifié
-                  </span>
-                ) : (
-                  <span className="chip !text-ultra-200">
-                    <Hourglass size={14} /> {c.status === "en-cours" ? "En cours" : "Planifiée"}
-                  </span>
-                )}
-              </div>
-              <h3 className="mt-5 font-semibold leading-snug">{c.name}</h3>
-              <p className="mt-1 text-sm text-ultra-200/70">
-                {c.issuer} · {c.year}
-              </p>
-              {c.credential_url && (
-                <a href={c.credential_url} target="_blank" rel="noopener" className="mt-3 inline-block text-sm text-ultra-300 underline hover:text-white">
-                  Vérifier le badge
-                </a>
-              )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold leading-snug">{c.name}</h3>
+                  <p className="mt-0.5 text-sm text-ultra-200/70">
+                    {c.academy || c.issuer} · {certDate(c, "short")}
+                  </p>
+                  {c.status === "obtenue" ? (
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs text-ok">
+                      <BadgeCheck size={13} /> {c.badge_url ? "Badge vérifié" : "Certificat obtenu"}
+                    </span>
+                  ) : (
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs text-ultra-200">
+                      <Hourglass size={13} /> {c.status === "en-cours" ? "En cours" : "Planifiée"}
+                    </span>
+                  )}
+                </div>
+                <ArrowRight size={17} className="shrink-0 text-ultra-200/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
+              </Link>
             </Reveal>
           ))}
+          {certifications.length > 0 && (
+            <Link href="/certifications" className="btn btn-glass justify-center">
+              Voir les certificats & badges <ArrowRight size={16} />
+            </Link>
+          )}
         </div>
       </div>
     </section>

@@ -183,6 +183,7 @@ export const navItems = [
   { href: "/a-propos", label: "À propos", icon: "user" },
   { href: "/projets", label: "Projets", icon: "folder" },
   { href: "/parcours", label: "Parcours", icon: "clock" },
+  { href: "/certifications", label: "Certifications", icon: "award" },
   { href: "/blog", label: "Blog", icon: "pen" },
   { href: "/ressources", label: "Ressources", icon: "download" },
   { href: "/contact", label: "Contact", icon: "mail" },
