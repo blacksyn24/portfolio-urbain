@@ -43,7 +43,13 @@ export function Gallery({ images, title, heading = "Photos & captures", classNam
             aria-label={`Agrandir la photo ${i + 1} sur ${n}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt={`${title} — photo ${i + 1}`} loading="lazy" className="aspect-[4/3] h-full w-full rounded-[1.1rem] object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+            <img
+              src={src}
+              alt={`${title} — photo ${i + 1}`}
+              loading="lazy"
+              // Une image seule (souvent un schéma de topologie) est montrée en entier, sans recadrage.
+              className={`${n === 1 ? "h-auto" : "aspect-[4/3] h-full object-cover"} w-full rounded-[1.1rem] transition-transform duration-500 group-hover:scale-[1.03]`}
+            />
           </button>
         ))}
       </div>
