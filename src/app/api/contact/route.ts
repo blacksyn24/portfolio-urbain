@@ -18,7 +18,7 @@ async function notifyByEmail(m: z.infer<typeof schema>) {
   const to = process.env.CONTACT_NOTIFY_EMAIL;
   if (!key || !to) return;
   try {
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -29,6 +29,7 @@ async function notifyByEmail(m: z.infer<typeof schema>) {
         html: `<p><b>${escape(m.name)}</b> (${escape(m.email)}) vous a écrit :</p><p style="white-space:pre-wrap">${escape(m.message)}</p>`,
       }),
     });
+    if (!res.ok) console.error("[contact] Resend a refusé l'email", res.status, await res.text());
   } catch (e) {
     console.error("[contact] email non envoyé", e);
   }
