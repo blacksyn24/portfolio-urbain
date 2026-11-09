@@ -13,16 +13,16 @@ export default function RessourcesAdmin() {
       itemLabel="Document"
       primary={(r) => String(r.title)}
       secondary={(r) => `${r.category} · ${r.file_name || "aucun fichier"}${r.file_size ? ` · ${size(Number(r.file_size))}` : ""}`}
-      defaults={{ title: "", description: "", category: "Réseaux", file_url: "", file_name: "", file_size: 0, published: true }}
+      defaults={{ title: "", description: "", category: "Réseaux", file_url: "", file_name: "", file_size: 0, preview_url: "", published: true }}
       fields={[
-        { name: "file_url", label: "Fichier", type: "file", folder: "documents", nameField: "file_name", sizeField: "file_size" },
+        { name: "file_url", label: "Fichier (aperçu automatique pour les PDF)", type: "file", folder: "documents", nameField: "file_name", sizeField: "file_size", previewField: "preview_url" },
         { name: "title", label: "Titre", type: "text", required: true },
         { name: "description", label: "Description", type: "textarea" },
         {
           name: "category",
           label: "Catégorie",
           type: "select",
-          options: ["Réseaux", "Cisco", "Cybersécurité", "Linux", "Fichiers de labs", "Rapports de labs", "Cours", "Autre"].map((c) => ({ value: c, label: c })),
+          options: ["Réseaux", "Cisco", "Cybersécurité", "Linux", "Fichiers de labs", "Rapports de labs", "Cours", "Guides", "Autre"].map((c) => ({ value: c, label: c })),
         },
         { name: "published", label: "Visible sur le site", type: "bool" },
       ]}

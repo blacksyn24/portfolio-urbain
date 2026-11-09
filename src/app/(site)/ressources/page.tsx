@@ -25,6 +25,7 @@ export default async function RessourcesPage() {
             title: d.title,
             meta: [d.category, fmtSize(d.file_size)].filter(Boolean).join(" · "),
             description: d.description,
+            image: d.preview_url || undefined,
             cover: <DocCover fileName={d.file_name} category={d.category} />,
             thumbText: (d.file_name.split(".").pop() ?? "").toUpperCase().slice(0, 4),
             href: downloadUrl(d),

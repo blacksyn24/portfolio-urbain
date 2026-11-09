@@ -36,7 +36,7 @@ export function DocumentsList({ documents }: { documents: DocumentItem[] }) {
         {list.map((d) => (
           <li key={d.id}>
             <MediaCard
-              images={[]}
+              images={d.preview_url ? [d.preview_url] : []}
               fallback={<DocCover fileName={d.file_name} category={d.category} />}
               href={downloadUrl(d)}
               title={d.title}

@@ -110,6 +110,8 @@ export type DocumentItem = {
   file_url: string;
   file_name: string;
   file_size: number;
+  /** Aperçu de la 1re page (PDF) */
+  preview_url: string;
   published: boolean;
   position: number;
   created_at: string;

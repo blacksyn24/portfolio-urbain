@@ -18,7 +18,7 @@ export type Field =
   | { name: string; label: string; type: "markdown"; help?: string }
   | { name: string; label: string; type: "datetime" }
   | { name: string; label: string; type: "date" }
-  | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number };
+  | { name: string; label: string; type: "file"; folder: string; nameField: string; sizeField: string; accept?: string; maxMb?: number; previewField?: string };
 
 type Row = Record<string, unknown> & { id: string; position: number; published: boolean };
 
@@ -479,9 +479,20 @@ export function FieldInput({
                 setBusy(true);
                 try {
                   const url = await upload(file, f.folder);
+                  // Pour un PDF, on génère aussi l'aperçu de la 1re page (sert de couverture)
+                  let previewUrl = "";
+                  if (f.previewField && /\.pdf$/i.test(file.name)) {
+                    try {
+                      const { pdfFirstPage } = await import("@/lib/pdfPreview");
+                      const blob = await pdfFirstPage(file);
+                      previewUrl = await upload(new File([blob], file.name.replace(/\.pdf$/i, "") + "-apercu.webp", { type: "image/webp" }), `${f.folder}/apercus`);
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }
                   onChange(url);
-                  patch?.({ [f.nameField]: file.name, [f.sizeField]: file.size });
-                  notify({ title: "Fichier envoyé", subtitle: file.name, tone: "success" });
+                  patch?.({ [f.nameField]: file.name, [f.sizeField]: file.size, ...(f.previewField ? { [f.previewField]: previewUrl } : {}) });
+                  notify({ title: "Fichier envoyé", subtitle: previewUrl ? "Aperçu de la 1re page généré" : file.name, tone: "success" });
                 } catch (err) {
                   notify({ title: "Envoi impossible", subtitle: err instanceof Error ? err.message : "", tone: "error" });
                 } finally {
@@ -490,6 +501,10 @@ export function FieldInput({
               }}
             />
           </label>
+          {f.previewField && String(record?.[f.previewField] ?? "") && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={String(record?.[f.previewField])} alt="Aperçu de la 1re page" className="h-16 w-12 rounded-md bg-white object-cover object-top shadow" />
+          )}
           {Boolean(value) && (
             <a href={String(value)} target="_blank" className="truncate text-sm text-ultra-300 underline">
               Voir le fichier actuel
