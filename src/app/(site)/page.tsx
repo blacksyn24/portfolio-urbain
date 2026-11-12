@@ -12,11 +12,6 @@ import { getCertifications, getDocuments, getPosts, getProjects, getSettings, ge
 
 export default async function HomePage() {
   const [s, projects, certs, posts, docs, skills, timeline] = await Promise.all([getSettings(), getProjects(), getCertifications(), getPosts(), getDocuments(), getSkills(), getTimeline()]);
-  // Certification en cours en priorité, sinon le dernier badge obtenu
-  const latest = [...certs].filter((c) => c.status === "obtenue" && c.badge_url).sort((a, b) => (b.issued_on ?? b.year).localeCompare(a.issued_on ?? a.year))[0];
-  const inProgress = certs.find((c) => c.status === "en-cours");
-  const heroBadge = inProgress ? { title: inProgress.name, year: inProgress.year } : latest ? { title: latest.name, year: latest.year, label: "Badge vérifié" } : undefined;
-
   const shortcuts = [
     { href: "/a-propos", icon: User, title: "À propos", text: `${skills.reduce((n, g) => n + g.items.length, 0)} compétences en ${skills.length} domaines` },
     { href: "/ressources", icon: FileDown, title: "Ressources", text: docs.length ? `${docs.length} document${docs.length > 1 ? "s" : ""} à télécharger` : "Cours, cheatsheets et rapports de labs" },
@@ -36,7 +31,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero settings={s} badge={heroBadge} />
+      <Hero settings={s} />
 
       <section className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 pt-5 sm:grid-cols-3">
         {shortcuts.map((c, i) => (
