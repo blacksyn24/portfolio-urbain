@@ -10,6 +10,8 @@ export default function ParcoursAdmin() {
       intro="Formations, expériences, projets et compétitions."
       itemLabel="Étape"
       primary={(r) => String(r.title)}
+      badge={(r) => String(r.kind ?? "")}
+      description={(r) => String(r.detail ?? "")}
       secondary={(r) => `${r.period} · ${r.place}`}
       defaults={{ period: "", title: "", place: "", detail: "", kind: "formation", current: false, published: true }}
       fields={[

@@ -10,6 +10,7 @@ export default function CompetencesAdmin() {
       intro="Regroupez vos compétences par domaine."
       itemLabel="Groupe"
       primary={(r) => String(r.name)}
+      badge={(r) => `${(r.items as string[]).length} compétences`}
       secondary={(r) => (r.items as string[]).join(", ")}
       defaults={{ name: "", icon: "network", items: [], published: true }}
       fields={[

@@ -12,6 +12,10 @@ export default function RessourcesAdmin() {
       intro="Documents téléchargeables par les visiteurs : PDF, cheatsheets, rapports de labs, fichiers de configuration…"
       itemLabel="Document"
       primary={(r) => String(r.title)}
+      image={(r) => String(r.preview_url || "")}
+      badge={(r) => String(r.category ?? "")}
+      description={(r) => String(r.description ?? "")}
+      link={(r) => String(r.file_url || "")}
       secondary={(r) => `${r.category} · ${r.file_name || "aucun fichier"}${r.file_size ? ` · ${size(Number(r.file_size))}` : ""}`}
       defaults={{ title: "", description: "", category: "Réseaux", file_url: "", file_name: "", file_size: 0, preview_url: "", published: true }}
       fields={[

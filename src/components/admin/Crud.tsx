@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, Eye, EyeOff, ImageOff, ImagePlus, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useIsland } from "../IslandProvider";
 import { useAdmin } from "./AdminProvider";
@@ -31,17 +31,26 @@ type Props = {
   /** Ligne principale et ligne secondaire affichées dans la liste. */
   primary: (r: Row) => string;
   secondary?: (r: Row) => string;
+  /** Image de la carte (couverture, aperçu…). Sans cette fonction, les cartes sont compactes, sans photo. */
+  image?: (r: Row) => string | undefined | null;
+  /** Pastille colorée de la carte (catégorie, statut…). */
+  badge?: (r: Row) => string | undefined | null;
+  /** Texte de description sous le titre (2 lignes). */
+  description?: (r: Row) => string | undefined | null;
+  /** Lien « voir sur le site » de la carte. */
+  link?: (r: Row) => string | undefined | null;
   defaults: Record<string, unknown>;
   /** Transformation avant enregistrement (ex. générer un slug). */
   beforeSave?: (v: Record<string, unknown>) => Record<string, unknown>;
 };
 
-export function Crud({ table, title, intro, itemLabel, fields, primary, secondary, defaults, beforeSave }: Props) {
+export function Crud({ table, title, intro, itemLabel, fields, primary, secondary, image, badge, description, link, defaults, beforeSave }: Props) {
   const { db, publish, upload } = useAdmin();
   const { notify } = useIsland();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [q, setQ] = useState("");
 
   const load = useCallback(async () => {
     const { data, error } = await db.from(table).select("*").order("position");
@@ -52,6 +61,15 @@ export function Crud({ table, title, intro, itemLabel, fields, primary, secondar
   useEffect(() => {
     load();
   }, [load]);
+
+  // Le bouton « + » du dashboard ouvre directement le formulaire d'ajout (…?nouveau=1)
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nouveau")) {
+      setEditing({ ...defaults });
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function after(msg: string) {
     await load();
@@ -120,34 +138,106 @@ export function Crud({ table, title, intro, itemLabel, fields, primary, secondar
       ) : rows.length === 0 ? (
         <div className="glass rounded-[2rem] p-10 text-center text-ultra-200/70">Aucun élément pour le moment.</div>
       ) : (
-        <ul className="space-y-3">
-          {rows.map((r, i) => (
-            <li key={r.id} className={`glass flex items-center gap-3 rounded-[1.6rem] p-3 pl-5 ${r.published ? "" : "opacity-60"}`}>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{primary(r)}</p>
-                {secondary && <p className="truncate text-sm text-ultra-200/65">{secondary(r)}</p>}
-              </div>
-              {!r.published && <span className="chip hidden sm:inline-flex">Masqué</span>}
-              <div className="flex shrink-0 items-center gap-0.5">
-                <IconBtn label="Monter" onClick={() => move(i, -1)} disabled={i === 0}>
-                  <ArrowUp size={16} />
-                </IconBtn>
-                <IconBtn label="Descendre" onClick={() => move(i, 1)} disabled={i === rows.length - 1}>
-                  <ArrowDown size={16} />
-                </IconBtn>
-                <IconBtn label={r.published ? "Masquer" : "Publier"} onClick={() => togglePublished(r)}>
-                  {r.published ? <Eye size={16} /> : <EyeOff size={16} />}
-                </IconBtn>
-                <IconBtn label="Modifier" onClick={() => setEditing({ ...r })}>
-                  <Pencil size={16} />
-                </IconBtn>
-                <IconBtn label="Supprimer" onClick={() => remove(r)} danger>
-                  <Trash2 size={16} />
-                </IconBtn>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <label className="glass flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 py-2.5 sm:max-w-sm">
+              <Search size={16} className="shrink-0 text-ultra-200/60" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Rechercher (${rows.length})…`} className="w-full bg-transparent text-sm text-white outline-none placeholder:text-ultra-200/50" />
+              {q && (
+                <button type="button" onClick={() => setQ("")} aria-label="Effacer" className="text-ultra-200/60 hover:text-white">
+                  <X size={15} />
+                </button>
+              )}
+            </label>
+            <span className="font-mono text-xs text-ultra-200/60">
+              {rows.filter((r) => r.published).length} publié{rows.filter((r) => r.published).length > 1 ? "s" : ""} · {rows.filter((r) => !r.published).length} masqué{rows.filter((r) => !r.published).length > 1 ? "s" : ""}
+            </span>
+          </div>
+          {(() => {
+            const needle = q.trim().toLowerCase();
+            const shown = rows.map((r, i) => ({ r, i })).filter(({ r }) => !needle || `${primary(r)} ${secondary?.(r) ?? ""} ${badge?.(r) ?? ""}`.toLowerCase().includes(needle));
+            if (!shown.length) return <div className="glass rounded-[2rem] p-10 text-center text-ultra-200/70">Aucun résultat pour « {q} ».</div>;
+            return (
+              <ul className={`grid gap-4 ${image ? "sm:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
+                {shown.map(({ r, i }) => {
+                  const src = image?.(r);
+                  const tag = badge?.(r);
+                  const desc = description?.(r);
+                  const href = link?.(r);
+                  return (
+                    <li key={r.id} className={`glass flex flex-col overflow-hidden rounded-[2rem] p-2.5 transition-opacity ${r.published ? "" : "opacity-70"}`}>
+                      {image && (
+                        <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-ultra-700/50 via-ink-900/70 to-ink-950">
+                          {src ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
+                          ) : (
+                            <div className="grid h-full place-items-center text-ultra-200/40">
+                              <ImageOff size={30} />
+                            </div>
+                          )}
+                          {/* Coins : ordre à gauche, visibilité à droite */}
+                          <div className="absolute left-2.5 top-2.5 flex gap-1.5">
+                            <CardBtn label="Avancer dans la liste" onClick={() => move(i, -1)} disabled={i === 0 || !!needle}>
+                              <ArrowLeft size={15} />
+                            </CardBtn>
+                            <CardBtn label="Reculer dans la liste" onClick={() => move(i, 1)} disabled={i === rows.length - 1 || !!needle}>
+                              <ArrowRight size={15} />
+                            </CardBtn>
+                          </div>
+                          <div className="absolute right-2.5 top-2.5">
+                            <CardBtn label={r.published ? "Masquer du site" : "Publier sur le site"} onClick={() => togglePublished(r)} active={r.published}>
+                              {r.published ? <Eye size={15} /> : <EyeOff size={15} />}
+                            </CardBtn>
+                          </div>
+                          <span className="absolute bottom-2.5 left-1/2 -translate-x-1/2 rounded-full bg-ink-950/80 px-3 py-1 font-mono text-[0.7rem] text-ultra-50 backdrop-blur-md">
+                            n° {i + 1} / {rows.length}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex flex-1 flex-col px-3 pb-2 pt-4">
+                        <p className="line-clamp-2 font-semibold leading-snug text-white">{primary(r)}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                          {tag && <span className="rounded-full bg-ultra-500 px-2.5 py-0.5 text-xs font-semibold text-white">{tag}</span>}
+                          {!r.published && <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-xs font-semibold text-amber-200">Masqué</span>}
+                          {!image && <span className="font-mono text-[0.7rem] text-ultra-200/50">n° {i + 1}</span>}
+                        </div>
+                        {secondary && <p className="mt-2 line-clamp-2 text-sm text-ultra-200/70">{secondary(r)}</p>}
+                        {desc && <p className="mt-1.5 line-clamp-2 text-sm text-ultra-200/55">{desc}</p>}
+                        <div className="mt-auto flex items-center gap-2 pt-4">
+                          <button type="button" onClick={() => setEditing({ ...r })} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-white text-sm font-semibold text-ink-950 transition-transform hover:-translate-y-0.5 active:scale-[0.98]">
+                            <Pencil size={15} /> Modifier
+                          </button>
+                          {!image && (
+                            <>
+                              <SquareBtn label="Avancer dans la liste" onClick={() => move(i, -1)} disabled={i === 0 || !!needle}>
+                                <ArrowLeft size={16} />
+                              </SquareBtn>
+                              <SquareBtn label="Reculer dans la liste" onClick={() => move(i, 1)} disabled={i === rows.length - 1 || !!needle}>
+                                <ArrowRight size={16} />
+                              </SquareBtn>
+                              <SquareBtn label={r.published ? "Masquer du site" : "Publier sur le site"} onClick={() => togglePublished(r)}>
+                                {r.published ? <Eye size={16} /> : <EyeOff size={16} />}
+                              </SquareBtn>
+                            </>
+                          )}
+                          {href && (
+                            <a href={href} target="_blank" rel="noopener" title="Voir sur le site" aria-label="Voir sur le site" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/8 text-ultra-100 ring-1 ring-white/12 hover:bg-white/15 hover:text-white">
+                              <ExternalLink size={16} />
+                            </a>
+                          )}
+                          <SquareBtn label="Supprimer" onClick={() => remove(r)} danger>
+                            <Trash2 size={16} />
+                          </SquareBtn>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          })()}
+        </>
       )}
 
       <AnimatePresence>
@@ -203,6 +293,38 @@ export function Crud({ table, title, intro, itemLabel, fields, primary, secondar
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/** Petit bouton rond posé sur la photo d'une carte. */
+function CardBtn({ label, onClick, children, disabled, active }: { label: string; onClick: () => void; children: React.ReactNode; disabled?: boolean; active?: boolean }) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={`grid h-9 w-9 place-items-center rounded-full backdrop-blur-md transition-colors disabled:opacity-30 ${active ? "bg-ok/90 text-ink-950" : "bg-ink-950/75 text-white hover:bg-ink-950"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Bouton carré de la rangée d'actions d'une carte. */
+function SquareBtn({ label, onClick, children, disabled, danger }: { label: string; onClick: () => void; children: React.ReactNode; disabled?: boolean; danger?: boolean }) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 transition-colors disabled:opacity-30 ${danger ? "bg-red-500/10 text-red-300 ring-red-400/25 hover:bg-red-500/20" : "bg-white/8 text-ultra-100 ring-white/12 hover:bg-white/15 hover:text-white"}`}
+    >
+      {children}
+    </button>
   );
 }
 

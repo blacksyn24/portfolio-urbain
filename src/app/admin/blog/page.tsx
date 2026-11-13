@@ -11,6 +11,9 @@ export default function BlogAdmin() {
       intro="Écrivez vos articles : writeups de labs, retours d'expérience, notes de cours."
       itemLabel="Article"
       primary={(r) => String(r.title)}
+      image={(r) => String(r.cover_url || r.pdf_preview_url || "")}
+      badge={(r) => (r.published ? "Publié" : "Brouillon")}
+      link={(r) => `/blog/${r.slug}`}
       secondary={(r) => `${r.published ? "Publié" : "Brouillon"}${r.pdf_url ? " · 📄 PDF" : ""} · ${new Date(String(r.published_at)).toLocaleDateString("fr-FR")} · ${(r.tags as string[]).join(", ")}`}
       defaults={{ title: "", excerpt: "", content: "", cover_url: "", pdf_url: "", pdf_name: "", pdf_size: 0, pdf_preview_url: "", tags: [], published: false, published_at: new Date().toISOString() }}
       beforeSave={(v) => ({ ...v, slug: v.slug || slugify(String(v.title)), updated_at: new Date().toISOString() })}

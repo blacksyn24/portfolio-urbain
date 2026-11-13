@@ -12,6 +12,9 @@ export default function CertificationsAdmin() {
       intro="Chaque fiche peut avoir un certificat (PDF, aperçu généré automatiquement) et/ou un badge (image + lien Credly). Sur le site, les certificats et les badges s'affichent dans deux sections séparées."
       itemLabel="Certification"
       primary={(r) => String(r.name)}
+      image={(r) => String(r.certificate_preview_url || r.badge_url || "")}
+      badge={(r) => statusLabel[String(r.status)]}
+      link={(r) => String(r.certificate_url || r.credential_url || "")}
       secondary={(r) =>
         [r.academy || r.issuer, r.issued_on ? new Date(String(r.issued_on)).toLocaleDateString("fr-FR") : r.year, statusLabel[String(r.status)], r.certificate_url ? "PDF" : "", r.badge_url ? "badge" : ""]
           .filter(Boolean)
