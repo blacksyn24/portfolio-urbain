@@ -105,7 +105,7 @@ export function ProjectCard({ p }: { p: Project }) {
           )}
         </>
       }
-      highlight={techs.length ? <span className="font-mono text-sm tracking-wide text-ultra-200">{techs.join(" · ")}</span> : undefined}
+      highlight={techs.length ? <span className="font-mono text-xs tracking-wide text-ultra-200">{techs.join(" · ")}</span> : undefined}
       badge={<span className="chip !bg-ink-950/80 backdrop-blur-md">{p.category}</span>}
       corner={<LikeButton slug={p.slug} initial={p.likes ?? 0} />}
       cta={{ label: "Voir le lab", href: `/projets/${p.slug}` }}
@@ -125,7 +125,7 @@ export function FeaturedProjects({ projects }: { projects: Project[] }) {
           Tous les projets <ArrowRight size={17} />
         </Link>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 lg:grid-cols-2">
         {list.map((p, i) => (
           <Reveal key={p.slug} delay={(i % 2) * 0.07}>
             <ProjectCard p={p} />

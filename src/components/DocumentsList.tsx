@@ -32,7 +32,7 @@ export function DocumentsList({ documents }: { documents: DocumentItem[] }) {
         )}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un document…" className="field !w-auto min-w-0 flex-1 !rounded-full" aria-label="Rechercher" />
       </div>
-      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-5 lg:grid-cols-2">
         {list.map((d) => (
           <li key={d.id}>
             <MediaCard

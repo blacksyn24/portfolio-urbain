@@ -34,7 +34,7 @@ export default async function BlogPage() {
         {posts.length === 0 ? (
           <p className="glass rounded-[2rem] p-10 text-center text-ultra-200/70">Les premiers articles arrivent bientôt.</p>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2">
             {posts.map((p, i) => (
               <Reveal key={p.slug} delay={(i % 3) * 0.05}>
                 <PostCard post={p} />

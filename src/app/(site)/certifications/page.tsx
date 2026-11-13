@@ -68,7 +68,7 @@ export default async function CertificationsPage() {
               <FileText className="text-ultra-300" /> Certificats
             </h2>
           </Reveal>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 lg:grid-cols-2">
             {certificates.map((c, i) => (
               <Reveal key={c.id} delay={(i % 3) * 0.06} className="min-w-0">
                 <CertificateCard c={c} />
