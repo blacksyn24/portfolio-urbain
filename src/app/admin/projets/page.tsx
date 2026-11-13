@@ -25,7 +25,7 @@ export default function ProjetsAdmin() {
         { name: "summary", label: "Résumé (affiché sur la carte)", type: "textarea", required: true },
         { name: "content", label: "Détails (utilisés aussi par le chatbot)", type: "textarea", help: "Topologie, configuration, difficultés, résultats…" },
         { name: "tags", label: "Technologies", type: "tags", help: "Ex. : GNS3, VLAN, OSPF" },
-        { name: "category", label: "Catégorie", type: "select", options: [{ value: "Lab", label: "Lab" }, { value: "Projet", label: "Projet" }, { value: "Outil", label: "Outil" }, { value: "CTF", label: "CTF" }] },
+        { name: "category", label: "Catégorie", type: "select", options: [{ value: "Lab", label: "Lab" }, { value: "Développement", label: "Développement" }, { value: "Outil", label: "Outil" }, { value: "CTF", label: "CTF" }] },
         { name: "year", label: "Année", type: "text" },
         { name: "topology_images", label: "Photos de la topologie (affichées dans la section « Topologie »)", type: "gallery", folder: "projets/topologie" },
         { name: "gallery", label: "Photos du projet (captures, topologie, matériel…)", type: "gallery", folder: "projets", coverField: "cover_url" },

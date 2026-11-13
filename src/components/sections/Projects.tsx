@@ -108,7 +108,7 @@ export function ProjectCard({ p }: { p: Project }) {
       highlight={techs.length ? <span className="font-mono text-xs tracking-wide text-ultra-200">{techs.join(" · ")}</span> : undefined}
       badge={<span className="chip !bg-ink-950/80 backdrop-blur-md">{p.category}</span>}
       corner={<LikeButton slug={p.slug} initial={p.likes ?? 0} />}
-      cta={{ label: "Voir le lab", href: `/projets/${p.slug}` }}
+      cta={{ label: p.category === "Lab" ? "Voir le lab" : "Voir le projet", href: `/projets/${p.slug}` }}
     />
   );
 }
@@ -120,7 +120,7 @@ export function FeaturedProjects({ projects }: { projects: Project[] }) {
   return (
     <section className="mx-auto max-w-6xl px-4 pt-28">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <SectionTitle eyebrow="// projets & labs" title="Ce que j'ai construit" intro="Une sélection de labs réseau documentés." />
+        <SectionTitle eyebrow="// projets & labs" title="Ce que j'ai construit" intro="Mes projets de développement et une sélection de labs réseau documentés." />
         <Link href="/projets" className="btn btn-glass mb-10">
           Tous les projets <ArrowRight size={17} />
         </Link>
