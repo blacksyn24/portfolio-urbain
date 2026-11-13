@@ -85,7 +85,7 @@ export function Hero({ settings: profile, badge }: { settings: Settings; badge?:
             <Reveal delay={0.18}>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Link href="/projets" className="btn btn-primary">
-                  Voir mes labs <ArrowRight size={18} />
+                  Voir mes projets <ArrowRight size={18} />
                 </Link>
                 <Link href="/contact" className="btn btn-glass">
                   <Mail size={17} /> Me contacter
