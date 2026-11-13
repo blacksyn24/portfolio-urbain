@@ -73,7 +73,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <NoticeIsland />
 
       {/* Barre du haut : bienvenue, recherche, alertes */}
-      <header className="glass glass-dark sticky top-3 z-40 flex items-center gap-3 rounded-full p-2 pr-3 sm:top-5">
+      <header className="glass glass-liquid sticky top-3 z-40 flex items-center gap-3 rounded-full p-2 pr-3 sm:top-5">
         <Link href="/admin" className="flex shrink-0 items-center gap-3 rounded-full pr-2">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -131,8 +131,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="mt-5 flex gap-5">
         {/* Rail d'icônes à gauche */}
-        <aside className="sticky top-24 hidden h-fit shrink-0 lg:block">
-          <nav className="glass glass-dark flex flex-col gap-1 rounded-full p-2">
+        <aside className="sticky top-24 z-30 hidden h-fit shrink-0 lg:block">
+          <nav className="glass glass-liquid flex flex-col gap-1 rounded-full p-2">
             {nav.map((n) => {
               const active = isActive(n.href);
               return (
@@ -140,11 +140,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   key={n.href}
                   href={n.href}
                   aria-label={n.label}
-                  className={`group relative grid h-11 w-11 place-items-center rounded-full transition-colors ${active ? "bg-white text-ink-950 shadow-lg" : "text-ultra-200 hover:bg-white/12 hover:text-white"}`}
+                  className={`group relative grid h-11 w-11 place-items-center rounded-full transition-colors ${active ? "bg-white text-ink-950 shadow-[0_8px_24px_-6px_rgb(255_255_255/.55)]" : "text-ultra-50 hover:bg-white/18 hover:text-white"}`}
                 >
                   <n.icon size={18} strokeWidth={1.9} />
                   {n.badge && unread > 0 && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-ultra-300 ring-2 ring-ink-950" />}
-                  <span className="pointer-events-none absolute left-full z-50 ml-3 whitespace-nowrap rounded-full bg-ink-950/95 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-xl ring-1 ring-white/15 transition-opacity group-hover:opacity-100">
+                  <span className="pointer-events-none absolute left-full z-50 ml-3 -translate-x-1 whitespace-nowrap rounded-full bg-ink-950/85 px-3.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-[0_10px_30px_-8px_rgb(0_0_0/.7),inset_0_1px_0_rgb(255_255_255/.35)] ring-1 ring-white/25 backdrop-blur-xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
                     {n.label}
                   </span>
                 </Link>
@@ -159,7 +159,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* Onglets en pilule en bas, avec le bouton « + » */}
       <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-3">
         <div className="pointer-events-auto relative flex max-w-full items-center gap-2">
-          <nav className="glass glass-dark flex min-w-0 gap-1 overflow-x-auto rounded-full p-1.5 [scrollbar-width:none]">
+          <nav className="glass glass-liquid flex min-w-0 gap-1 overflow-x-auto rounded-full p-1.5 [scrollbar-width:none]">
             {nav.map((n) => {
               const active = isActive(n.href);
               return (
