@@ -87,7 +87,7 @@ export default async function HomePage() {
       {docs.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pt-28">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionTitle eyebrow="// ressources" title="Ressources gratuites" intro="Des guides que j'ai rédigés pour aider d'autres étudiants à se former." />
+            <SectionTitle eyebrow="// ressources" title="Ressources gratuites" intro="Aide-mémoires Cisco et guides que j'ai rédigés pour aider d'autres étudiants." />
             <Link href="/ressources" className="btn btn-glass mb-10">
               Toutes les ressources <ArrowRight size={17} />
             </Link>

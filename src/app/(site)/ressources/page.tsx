@@ -15,7 +15,7 @@ export default async function RessourcesPage() {
   const showcase = [...docs.filter((d) => d.category !== "Fichiers de labs"), ...docs.filter((d) => d.category === "Fichiers de labs")].slice(0, 7);
   return (
     <>
-      <PageHeader eyebrow="// ressources" title="Documents à télécharger" intro="Rapports de labs, cheatsheets Cisco, fichiers Packet Tracer et GNS3, cours — libres de téléchargement." />
+      <PageHeader eyebrow="// ressources" title="Documents à télécharger" intro="Aide-mémoires Cisco et guides de formation en PDF, que j'ai rédigés pour les étudiants en réseau. Gratuits et libres de partage." />
       {showcase.length > 1 && (
         <GlassCarousel
           label="Ressources à la une"
